@@ -9,7 +9,6 @@ using Umbraco.Cms.Api.Common.OpenApi;
 using Umbraco.Cms.Api.Management.OpenApi;
 using Umbraco.Cms.Core.Composing;
 using Umbraco.Cms.Core.DependencyInjection;
-using UmbracoFlavoredMarkdownExtensions;
 
 namespace Dragonfly.UfmExtensions;
 
@@ -33,7 +32,7 @@ public class UfmExtensionsApiComposer : IComposer
             // Along with having a generated swagger JSON file that we can use to auto generate a TypeScript client
             opt.SwaggerDoc(Constants.ApiName, new OpenApiInfo
             {
-                Title = "Umbraco Flavored Markdown Extensions Backoffice API",
+                Title = "Dragonfly UFM Extensions Backoffice API",
                 Version = "1.0",
                 // Contact = new OpenApiContact
                 // {
@@ -45,11 +44,11 @@ public class UfmExtensionsApiComposer : IComposer
 
             // Enable Umbraco authentication for the "Example" Swagger document
             // PR: https://github.com/umbraco/Umbraco-CMS/pull/15699
-            opt.OperationFilter<UmbracoFlavoredMarkdownExtensionsOperationSecurityFilter>();
+            opt.OperationFilter<DragonflyUfmExtensionsOperationSecurityFilter>();
         });
     }
 
-    public class UmbracoFlavoredMarkdownExtensionsOperationSecurityFilter : BackOfficeSecurityRequirementsOperationFilterBase
+    public class DragonflyUfmExtensionsOperationSecurityFilter : BackOfficeSecurityRequirementsOperationFilterBase
     {
         protected override string ApiName => Constants.ApiName;
     }
@@ -65,7 +64,7 @@ public class UfmExtensionsApiComposer : IComposer
 
         protected override bool CanHandle(ApiDescription apiDescription, ControllerActionDescriptor controllerActionDescriptor)
         {
-            return controllerActionDescriptor.ControllerTypeInfo.Namespace?.StartsWith("UmbracoFlavoredMarkdownExtensions.Controllers", comparisonType: StringComparison.InvariantCultureIgnoreCase) is true;
+            return controllerActionDescriptor.ControllerTypeInfo.Namespace?.StartsWith("Dragonfly.UfmExtensions.Controllers", comparisonType: StringComparison.InvariantCultureIgnoreCase) is true;
         }
 
         public override string Handle(ApiDescription apiDescription) => $"{apiDescription.ActionDescriptor.RouteValues["action"]}";
