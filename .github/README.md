@@ -117,6 +117,15 @@ proposed UFM, and any warnings, without saving anything. `UseContentTypeNameComp
 `{dufmBlockContentTypeName:}` for `$contentTypeName`; with `false`, the element type's name is written
 into the label instead, which needs no package installed at render time.
 
+The package also exposes the migrator on its Management API, for users with Settings section access.
+Call it from the Swagger UI at `/umbraco/swagger` (the `dragonfly-ufmextensions` document), since
+Management API endpoints need a bearer token:
+
+| Request | Does |
+| --- | --- |
+| `GET /umbraco/ufmextensions/api/v1/convertBlockLabelsToUfm?UseContentTypeNameComponent=true` | Dry run — returns the report, saves nothing |
+| `POST /umbraco/ufmextensions/api/v1/convertBlockLabelsToUfm?UseContentTypeNameComponent=true` | Converts the labels and saves the changed datatypes |
+
 ### What it converts
 
 | AngularJS | UFM |

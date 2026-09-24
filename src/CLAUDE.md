@@ -16,8 +16,8 @@ src/
 ├── Directory.Packages.props            Central package versions for the package project
 ├── Custom.targets                      Pack helpers (see warning below — not currently imported)
 ├── Dragonfly/                          The package project (Microsoft.NET.Sdk.Razor)
-│   ├── Constants.cs                    ApiName used by the Swagger document and API routes
 │   ├── UfmExtensions/
+│   │   ├── Constants.cs                ApiName used by the Swagger document and API routes
 │   │   ├── BlockLabels/                Block label conversion (AngularJS → UFM)
 │   │   ├── Composers/                  Swagger/OpenAPI registration for the package's API
 │   │   └── Controllers/                Management API controllers
@@ -65,7 +65,7 @@ npm run generate-client
 ```
 
 `generate-client` fetches swagger JSON from the running test site at
-`https://localhost:44365/umbraco/swagger/umbracoflavoredmarkdownextensions/swagger.json` and runs
+`https://localhost:44365/umbraco/swagger/dragonfly-ufmextensions/swagger.json` and runs
 `@hey-api/openapi-ts`. Every file under `src/Dragonfly/Client/src/api/` ending in `.gen.ts` is
 generated — do not edit those directly.
 
@@ -153,5 +153,5 @@ The package needs no configuration in a consuming site. Installing it registers 
 (via the bundle in `umbraco-package.json`) and `BlockLabelUfmMigrator` in DI.
 
 The package's own Management API is registered by `UfmExtensionsApiComposer` under the Swagger
-document named by `Constants.ApiName` (`umbracoflavoredmarkdownextensions`), routed at
+document named by `Constants.ApiName` (`dragonfly-ufmextensions`), routed at
 `ufmextensions/api/v{version}`.

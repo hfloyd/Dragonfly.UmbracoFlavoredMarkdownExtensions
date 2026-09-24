@@ -64,7 +64,7 @@ public class UfmExtensionsApiComposer : IComposer
 
         protected override bool CanHandle(ApiDescription apiDescription, ControllerActionDescriptor controllerActionDescriptor)
         {
-            return controllerActionDescriptor.ControllerTypeInfo.Namespace?.StartsWith("Dragonfly.UfmExtensions.Controllers", comparisonType: StringComparison.InvariantCultureIgnoreCase) is true;
+            return controllerActionDescriptor.ControllerTypeInfo.IsSubclassOf(typeof(UfmExtensionsApiControllerBase));
         }
 
         public override string Handle(ApiDescription apiDescription) => $"{apiDescription.ActionDescriptor.RouteValues["action"]}";
