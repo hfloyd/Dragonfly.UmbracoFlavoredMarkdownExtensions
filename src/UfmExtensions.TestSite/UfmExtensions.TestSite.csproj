@@ -8,10 +8,15 @@
     <CompressionEnabled>false</CompressionEnabled>
   
     <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+
+    <!-- Views compile at runtime against InMemoryAuto models, so they must not be compiled at build time -->
+    <RazorCompileOnBuild>false</RazorCompileOnBuild>
+    <RazorCompileOnPublish>false</RazorCompileOnPublish>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Umbraco.Cms" Version="17.4.2" />
+    <PackageReference Include="Umbraco.Cms.DevelopmentMode.Backoffice" Version="17.4.2" />
     <PackageReference Include="Umbraco.TheStarterKit" Version="17.0.0" />
     <PackageReference Include="uSync" Version="17.3.2" />
 
