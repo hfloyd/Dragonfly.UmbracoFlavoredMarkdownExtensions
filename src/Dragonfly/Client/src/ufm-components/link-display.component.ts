@@ -3,13 +3,8 @@ import { UmbUfmComponentBase, UmbUfmElementBase, UMB_UFM_RENDER_CONTEXT } from "
 import type { UfmToken } from "@umbraco-cms/backoffice/ufm";
 import { UMB_DOCUMENT_ENTITY_TYPE, UmbDocumentItemRepository } from "@umbraco-cms/backoffice/document";
 import { UMB_MEDIA_ENTITY_TYPE, UmbMediaItemRepository } from "@umbraco-cms/backoffice/media";
-
-type UfmLinkValue = {
-  name?: string;
-  type?: string;
-  unique?: string;
-  url?: string;
-};
+import { parseLinkValues } from "./link-value.function.js";
+import type { UfmLinkValue } from "./link-value.function.js";
 
 /**
  * Describes a link picker value the way AngularJS labels did: the linked item's name when one is
@@ -31,12 +26,12 @@ export class UfmLinkDisplayElement extends UmbUfmElementBase {
         context?.value,
         async (value) => {
           const propertyValue = this.alias && typeof value === "object" ? (value as never)[this.alias] : value;
-          if (!propertyValue) {
+          const links = parseLinkValues(propertyValue);
+          if (!links.length) {
             this.value = "";
             return;
           }
 
-          const links: Array<UfmLinkValue> = Array.isArray(propertyValue) ? propertyValue : [propertyValue];
           const labels = await Promise.all(links.map((link) => this.#describe(link)));
 
           this.value = labels.filter((label) => label).join(", ");
@@ -54,7 +49,9 @@ export class UfmLinkDisplayElement extends UmbUfmElementBase {
     if (!link?.unique) return undefined;
 
     const repository = this.#repositoryFor(link.type);
-    const { data } = await repository.requestItems([link.unique]);
+
+    // A lookup failure should not blank the whole label.
+    const { data } = await repository.requestItems([link.unique]).catch(() => ({ data: undefined }));
 
     if (!Array.isArray(data) || data.length === 0) return undefined;
 

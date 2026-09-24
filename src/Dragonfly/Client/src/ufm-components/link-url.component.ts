@@ -3,13 +3,8 @@ import { UmbUfmComponentBase, UmbUfmElementBase, UMB_UFM_RENDER_CONTEXT } from "
 import type { UfmToken } from "@umbraco-cms/backoffice/ufm";
 import { UMB_DOCUMENT_ENTITY_TYPE, UmbDocumentUrlRepository } from "@umbraco-cms/backoffice/document";
 import { UMB_MEDIA_ENTITY_TYPE, UmbMediaUrlRepository } from "@umbraco-cms/backoffice/media";
-
-type UfmLinkValue = {
-  queryString?: string;
-  type?: string;
-  unique?: string;
-  url?: string;
-};
+import { parseLinkValues } from "./link-value.function.js";
+import type { UfmLinkValue } from "./link-value.function.js";
 
 /**
  * Renders the URL of a link picker value. Document and media links store only a key, so their URLs
@@ -31,12 +26,12 @@ export class UfmLinkUrlElement extends UmbUfmElementBase {
         context?.value,
         async (value) => {
           const propertyValue = this.alias && typeof value === "object" ? (value as never)[this.alias] : value;
-          if (!propertyValue) {
+          const links = parseLinkValues(propertyValue);
+          if (!links.length) {
             this.value = "";
             return;
           }
 
-          const links: Array<UfmLinkValue> = Array.isArray(propertyValue) ? propertyValue : [propertyValue];
           const urls = await Promise.all(links.map((link) => this.#url(link)));
 
           this.value = urls.filter((url) => url).join(", ");
@@ -56,14 +51,14 @@ export class UfmLinkUrlElement extends UmbUfmElementBase {
     if (link.type === UMB_MEDIA_ENTITY_TYPE) {
       this.#mediaUrlRepository ??= new UmbMediaUrlRepository(this);
 
-      const { data } = await this.#mediaUrlRepository.requestItems([link.unique]);
+      const { data } = await this.#mediaUrlRepository.requestItems([link.unique]).catch(() => ({ data: undefined }));
       return Array.isArray(data) ? data[0]?.url : undefined;
     }
 
     if (link.type === UMB_DOCUMENT_ENTITY_TYPE) {
       this.#documentUrlRepository ??= new UmbDocumentUrlRepository(this);
 
-      const { data } = await this.#documentUrlRepository.requestUrls([link.unique]);
+      const { data } = await this.#documentUrlRepository.requestUrls([link.unique]).catch(() => ({ data: undefined }));
       const url = Array.isArray(data) ? data[0]?.urls?.[0]?.url : undefined;
 
       return this.#withQueryString(link, url);
