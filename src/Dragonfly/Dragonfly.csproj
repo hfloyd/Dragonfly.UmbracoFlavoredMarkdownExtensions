@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Razor">
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
 
@@ -86,6 +86,14 @@
 
 
   <ItemGroup>
+    <!--
+      The SDK discovers static web assets from @(Content) matching wwwroot/**, and EnableDefaultContentItems
+      is false above, so the built client bundle has to be included explicitly or it never reaches the package.
+      Do not set Pack="false" here: that also drops the files from static web asset discovery, which is how
+      they get into staticwebassets/ in the package.
+    -->
+    <Content Include="wwwroot\**" />
+
     <!-- Dont include the client folder as part of packaging nuget build -->
     <Content Remove="Client\**" />
 

@@ -33,13 +33,15 @@
     <CopyRazorGenerateFilesToPublishDirectory>true</CopyRazorGenerateFilesToPublishDirectory>
     <UserSecretsId>6225b129-f77e-4cb0-88ac-d9f7a262ad0d</UserSecretsId>
   </PropertyGroup>
-  <Target Name="CopyAppPlugins" BeforeTargets="Build">
-    <Copy SourceFiles="@(AppPluginsFiles)" DestinationFolder="$(ProjectDir)App_Plugins\%(RecursiveDir)" />
-    <!-- Copy wwwroot App_Plugins (JS bundles, icons) to TestSite wwwroot so IIS serves them -->
-    <ItemGroup>
-      <WwwrootAppPluginsFiles Include="..\Dragonfly\wwwroot\App_Plugins\**\*" />
-    </ItemGroup>
-    <Copy SourceFiles="@(WwwrootAppPluginsFiles)" DestinationFolder="$(ProjectDir)wwwroot\App_Plugins\%(RecursiveDir)" />
+  <!--
+    Nothing copies the client bundle into this site: the package project ships wwwroot/App_Plugins as
+    static web assets, which reach this site through the project reference and are served from there.
+    Copying them in as well gives two sources for the same path, which fails the build with
+    "Conflicting assets".
+  -->
+  <Target Name="RemoveCopiedAppPlugins" BeforeTargets="Build" Condition="Exists('$(ProjectDir)wwwroot\App_Plugins\Dragonfly.UfmComponents')">
+    <!-- Clears copies left by earlier builds, which would still conflict with the static web assets. -->
+    <RemoveDir Directories="$(ProjectDir)wwwroot\App_Plugins\Dragonfly.UfmComponents" />
   </Target>
 
 </Project>
