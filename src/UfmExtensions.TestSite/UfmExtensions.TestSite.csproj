@@ -3,33 +3,38 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <CompressionEnabled>false</CompressionEnabled> <!-- Disable compression. E.g. for umbraco backoffice files. These files should be precompressed by node and not let dotnet handle it -->
+
+    <!-- Disable compression. E.g. for umbraco backoffice files. These files should be precompressed by node and not let dotnet handle it -->
+    <CompressionEnabled>false</CompressionEnabled>
+  
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
   </PropertyGroup>
 
   <ItemGroup>
- <PackageReference Include="Umbraco.Cms" Version="17.4.2" />
+    <PackageReference Include="Umbraco.Cms" Version="17.4.2" />
     <PackageReference Include="Umbraco.TheStarterKit" Version="17.0.0" />
     <PackageReference Include="uSync" Version="17.3.2" />
-    
-     <!-- Opt-in to app-local ICU to ensure consistent globalization APIs across different platforms -->
+
+    <!-- Opt-in to app-local ICU to ensure consistent globalization APIs across different platforms -->
     <PackageReference Include="Microsoft.ICU.ICU4C.Runtime" Version="72.1.0.3" />
-    
+
     <RuntimeHostConfigurationOption Include="System.Globalization.AppLocalIcu" Value="72.1.0.3" Condition="$(RuntimeIdentifier.StartsWith('linux')) or $(RuntimeIdentifier.StartsWith('win')) or ('$(RuntimeIdentifier)' == '' and !$([MSBuild]::IsOSPlatform('osx')))" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Dragonfly\Dragonfly.csproj" />
-   </ItemGroup>
+  </ItemGroup>
 
-<ItemGroup>
+  <ItemGroup>
     <Folder Include="bin\" />
   </ItemGroup>
   <PropertyGroup>
     <!-- Razor files are needed for the backoffice to work correctly -->
     <CopyRazorGenerateFilesToPublishDirectory>true</CopyRazorGenerateFilesToPublishDirectory>
+    <UserSecretsId>6225b129-f77e-4cb0-88ac-d9f7a262ad0d</UserSecretsId>
   </PropertyGroup>
- <Target Name="CopyAppPlugins" BeforeTargets="Build">
-      <Copy SourceFiles="@(AppPluginsFiles)" DestinationFolder="$(ProjectDir)App_Plugins\%(RecursiveDir)" />
+  <Target Name="CopyAppPlugins" BeforeTargets="Build">
+    <Copy SourceFiles="@(AppPluginsFiles)" DestinationFolder="$(ProjectDir)App_Plugins\%(RecursiveDir)" />
     <!-- Copy wwwroot App_Plugins (JS bundles, icons) to TestSite wwwroot so IIS serves them -->
     <ItemGroup>
       <WwwrootAppPluginsFiles Include="..\Dragonfly\wwwroot\App_Plugins\**\*" />

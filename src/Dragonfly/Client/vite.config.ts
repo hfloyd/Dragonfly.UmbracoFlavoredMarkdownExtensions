@@ -7,7 +7,7 @@ export default defineConfig({
       formats: ["es"],
       fileName: "umbraco-flavored-markdown-extensions",
     },
-    outDir: "../wwwroot/App_Plugins/UmbracoFlavoredMarkdownExtensions", // your web component will be saved in this location
+    outDir: "../wwwroot/App_Plugins/Dragonfly.UfmComponents", // your web component will be saved in this location
     emptyOutDir: true,
     sourcemap: true,
     rollupOptions: {
