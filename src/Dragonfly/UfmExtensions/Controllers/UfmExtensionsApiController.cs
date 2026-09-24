@@ -31,7 +31,6 @@ public class UfmExtensionsApiController : UfmExtensionsApiControllerBase
     [HttpGet("convertBlockLabelsToUfm")]
     [Authorize(Policy = AuthorizationPolicies.SectionAccessSettings)]
     [ProducesResponseType<BlockLabelUfmReport>(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public Task<IActionResult> PreviewBlockLabelConversion(bool UseContentTypeNameComponent = false)
         => RunBlockLabelMigrator(DryRun: true, UseContentTypeNameComponent);
 
@@ -41,7 +40,6 @@ public class UfmExtensionsApiController : UfmExtensionsApiControllerBase
     [HttpPost("convertBlockLabelsToUfm")]
     [Authorize(Policy = AuthorizationPolicies.SectionAccessSettings)]
     [ProducesResponseType<BlockLabelUfmReport>(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public Task<IActionResult> ConvertBlockLabels(bool UseContentTypeNameComponent = false)
         => RunBlockLabelMigrator(DryRun: false, UseContentTypeNameComponent);
 

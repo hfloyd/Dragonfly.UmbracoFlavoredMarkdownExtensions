@@ -3,24 +3,7 @@ const n = [
     name: "Umbraco Flavored Markdown Extensions Entrypoint",
     alias: "UmbracoFlavoredMarkdownExtensions.Entrypoint",
     type: "backofficeEntryPoint",
-    js: () => import("./entrypoint-C6x7o20I.js")
-  }
-], a = [
-  {
-    name: "Umbraco Flavored Markdown Extensions Dashboard",
-    alias: "UmbracoFlavoredMarkdownExtensions.Dashboard",
-    type: "dashboard",
-    js: () => import("./dashboard.element-B6B7BM0_.js"),
-    meta: {
-      label: "Example Dashboard",
-      pathname: "example-dashboard"
-    },
-    conditions: [
-      {
-        alias: "Umb.Condition.SectionAlias",
-        match: "Umb.Section.Content"
-      }
-    ]
+    js: () => import("./entrypoint-B8u3Fa5h.js")
   }
 ], o = [
   {
@@ -59,12 +42,11 @@ const n = [
       alias: "dufmLinkUrlWithAnchor"
     }
   }
-], t = [
+], a = [
   ...n,
-  ...a,
   ...o
 ];
 export {
-  t as manifests
+  a as manifests
 };
 //# sourceMappingURL=umbraco-flavored-markdown-extensions.js.map

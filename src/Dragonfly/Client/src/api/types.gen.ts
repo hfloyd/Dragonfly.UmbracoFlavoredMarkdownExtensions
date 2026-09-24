@@ -4,180 +4,83 @@ export type ClientOptions = {
     baseUrl: 'https://localhost:44365' | (string & {});
 };
 
-export type DocumentGranularPermissionModel = {
-    key: string;
-    readonly context: string;
-    permission: string;
+export type BlockLabelChange = {
+    dataTypeName: string;
+    block: string;
+    property: string;
+    originalLabel: string;
+    convertedLabel: string;
+    status: string;
+    applied: boolean;
+    warnings: Array<string>;
 };
 
-export type DocumentPropertyValueGranularPermissionModel = {
-    key: string;
-    readonly context: string;
-    permission: string;
+export type BlockLabelUfmReport = {
+    dryRun: boolean;
+    useContentTypeNameComponent: boolean;
+    dataTypesScanned: number;
+    dataTypesSaved: number;
+    labelsConverted: number;
+    labelsNeedingReview: number;
+    labelsUnchanged: number;
+    changes: Array<BlockLabelChange>;
 };
 
-export type ReadOnlyUserGroupModel = {
-    id: number;
-    key: string;
-    name: string;
-    readonly description?: string | null;
-    icon?: string | null;
-    startContentId?: number | null;
-    startMediaId?: number | null;
-    alias: string;
-    hasAccessToAllLanguages: boolean;
-    allowedLanguages: Array<number>;
-    permissions: Array<string>;
-    granularPermissions: Array<DocumentGranularPermissionModel | DocumentPropertyValueGranularPermissionModel | UnknownTypeGranularPermissionModel>;
-    allowedSections: Array<string>;
+export type PreviewBlockLabelConversionData = {
+    body?: never;
+    path?: never;
+    query?: {
+        UseContentTypeNameComponent?: boolean;
+    };
+    url: '/umbraco/ufmextensions/api/v1/convertBlockLabelsToUfm';
 };
 
-export type UnknownTypeGranularPermissionModel = {
-    context: string;
-    permission: string;
+export type PreviewBlockLabelConversionErrors = {
+    /**
+     * The resource is protected and requires an authentication token
+     */
+    401: unknown;
 };
 
-export type UserGroupModel = {
-    id: number;
-    key: string;
-    createDate: string;
-    updateDate: string;
-    deleteDate?: string | null;
-    readonly hasIdentity: boolean;
-    startMediaId?: number | null;
-    startContentId?: number | null;
-    icon?: string | null;
-    alias: string;
-    name?: string | null;
-    description?: string | null;
-    hasAccessToAllLanguages: boolean;
-    permissions: Array<string>;
-    granularPermissions: Array<DocumentGranularPermissionModel | DocumentPropertyValueGranularPermissionModel | UnknownTypeGranularPermissionModel>;
-    readonly allowedSections: Array<string>;
-    readonly userCount: number;
-    readonly allowedLanguages: Array<number>;
+export type PreviewBlockLabelConversionResponses = {
+    /**
+     * OK
+     */
+    200: BlockLabelUfmReport;
 };
 
-export type UserKindModel = 'Default' | 'Api';
+export type PreviewBlockLabelConversionResponse = PreviewBlockLabelConversionResponses[keyof PreviewBlockLabelConversionResponses];
 
-export type UserModel = {
-    id: number;
-    key: string;
-    createDate: string;
-    updateDate: string;
-    deleteDate?: string | null;
-    readonly hasIdentity: boolean;
-    emailConfirmedDate?: string | null;
-    invitedDate?: string | null;
-    username: string;
-    email: string;
-    rawPasswordValue?: string | null;
-    passwordConfiguration?: string | null;
-    isApproved: boolean;
-    isLockedOut: boolean;
-    lastLoginDate?: string | null;
-    lastPasswordChangeDate?: string | null;
-    lastLockoutDate?: string | null;
-    failedPasswordAttempts: number;
-    comments?: string | null;
-    userState: UserStateModel;
-    name?: string | null;
-    readonly allowedSections: Array<string>;
-    profileData: UserModel | UserProfileModel;
-    securityStamp?: string | null;
-    avatar?: string | null;
-    sessionTimeout: number;
-    startContentIds?: Array<number> | null;
-    startMediaIds?: Array<number> | null;
-    language?: string | null;
-    kind: UserKindModel;
-    readonly groups: Array<ReadOnlyUserGroupModel | UserGroupModel>;
+export type ConvertBlockLabelsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        UseContentTypeNameComponent?: boolean;
+    };
+    url: '/umbraco/ufmextensions/api/v1/convertBlockLabelsToUfm';
 };
 
-export type UserProfileModel = {
-    id: number;
-    name?: string | null;
+export type ConvertBlockLabelsErrors = {
+    /**
+     * The resource is protected and requires an authentication token
+     */
+    401: unknown;
 };
 
-export type UserStateModel = 'Active' | 'Disabled' | 'LockedOut' | 'Invited' | 'Inactive' | 'All';
-
-export type DocumentGranularPermissionModelWritable = {
-    key: string;
-    permission: string;
+export type ConvertBlockLabelsResponses = {
+    /**
+     * OK
+     */
+    200: BlockLabelUfmReport;
 };
 
-export type DocumentPropertyValueGranularPermissionModelWritable = {
-    key: string;
-    permission: string;
-};
-
-export type ReadOnlyUserGroupModelWritable = {
-    id: number;
-    key: string;
-    name: string;
-    icon?: string | null;
-    startContentId?: number | null;
-    startMediaId?: number | null;
-    alias: string;
-    hasAccessToAllLanguages: boolean;
-    allowedLanguages: Array<number>;
-    permissions: Array<string>;
-    granularPermissions: Array<DocumentGranularPermissionModelWritable | DocumentPropertyValueGranularPermissionModelWritable | UnknownTypeGranularPermissionModel>;
-    allowedSections: Array<string>;
-};
-
-export type UserGroupModelWritable = {
-    id: number;
-    key: string;
-    createDate: string;
-    updateDate: string;
-    deleteDate?: string | null;
-    startMediaId?: number | null;
-    startContentId?: number | null;
-    icon?: string | null;
-    alias: string;
-    name?: string | null;
-    description?: string | null;
-    hasAccessToAllLanguages: boolean;
-    permissions: Array<string>;
-    granularPermissions: Array<DocumentGranularPermissionModelWritable | DocumentPropertyValueGranularPermissionModelWritable | UnknownTypeGranularPermissionModel>;
-};
-
-export type UserModelWritable = {
-    id: number;
-    key: string;
-    createDate: string;
-    updateDate: string;
-    deleteDate?: string | null;
-    emailConfirmedDate?: string | null;
-    invitedDate?: string | null;
-    username: string;
-    email: string;
-    rawPasswordValue?: string | null;
-    passwordConfiguration?: string | null;
-    isApproved: boolean;
-    isLockedOut: boolean;
-    lastLoginDate?: string | null;
-    lastPasswordChangeDate?: string | null;
-    lastLockoutDate?: string | null;
-    failedPasswordAttempts: number;
-    comments?: string | null;
-    userState: UserStateModel;
-    name?: string | null;
-    securityStamp?: string | null;
-    avatar?: string | null;
-    sessionTimeout: number;
-    startContentIds?: Array<number> | null;
-    startMediaIds?: Array<number> | null;
-    language?: string | null;
-    kind: UserKindModel;
-};
+export type ConvertBlockLabelsResponse = ConvertBlockLabelsResponses[keyof ConvertBlockLabelsResponses];
 
 export type PingData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/umbraco/umbracoflavoredmarkdownextensions/api/v1/ping';
+    url: '/umbraco/ufmextensions/api/v1/ping';
 };
 
 export type PingErrors = {
@@ -195,72 +98,3 @@ export type PingResponses = {
 };
 
 export type PingResponse = PingResponses[keyof PingResponses];
-
-export type WhatsMyNameData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/umbraco/umbracoflavoredmarkdownextensions/api/v1/whatsMyName';
-};
-
-export type WhatsMyNameErrors = {
-    /**
-     * The resource is protected and requires an authentication token
-     */
-    401: unknown;
-};
-
-export type WhatsMyNameResponses = {
-    /**
-     * OK
-     */
-    200: string;
-};
-
-export type WhatsMyNameResponse = WhatsMyNameResponses[keyof WhatsMyNameResponses];
-
-export type WhatsTheTimeMrWolfData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/umbraco/umbracoflavoredmarkdownextensions/api/v1/whatsTheTimeMrWolf';
-};
-
-export type WhatsTheTimeMrWolfErrors = {
-    /**
-     * The resource is protected and requires an authentication token
-     */
-    401: unknown;
-};
-
-export type WhatsTheTimeMrWolfResponses = {
-    /**
-     * OK
-     */
-    200: string;
-};
-
-export type WhatsTheTimeMrWolfResponse = WhatsTheTimeMrWolfResponses[keyof WhatsTheTimeMrWolfResponses];
-
-export type WhoAmIData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/umbraco/umbracoflavoredmarkdownextensions/api/v1/whoAmI';
-};
-
-export type WhoAmIErrors = {
-    /**
-     * The resource is protected and requires an authentication token
-     */
-    401: unknown;
-};
-
-export type WhoAmIResponses = {
-    /**
-     * OK
-     */
-    200: UserModel;
-};
-
-export type WhoAmIResponse = WhoAmIResponses[keyof WhoAmIResponses];
