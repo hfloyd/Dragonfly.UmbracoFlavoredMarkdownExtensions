@@ -92,7 +92,7 @@ Umbraco ships its own:
 
 `manifest.ts` registers them as `ufmComponent` manifests, and `bundle.manifests.ts` includes that
 array. The `meta.alias` is the syntax editors type; with no `meta.marker`, the token needs its colon
-(`{linkUrl: myLink}`, and `{blockContentTypeName:}` even with no argument).
+(`{dufmLinkUrl: myLink}`, and `{dufmBlockContentTypeName:}` even with no argument).
 
 Components read property values from `UMB_UFM_RENDER_CONTEXT`, whose `value` is an object keyed by
 property alias. A component **cannot** be nested inside a `${ }` expression, so anything conditional
@@ -127,7 +127,7 @@ Conversion rules worth knowing:
 - `$settings.x == 1` → `$settings.x`, because settings toggles are real booleans in v14+.
 - `| ncRichText` → `| stripHtml`; `| truncate:true:N` → `| truncate:N`.
 - `$contentTypeName` has no UFM equivalent: either the element type name is written into the label,
-  or, with `UseContentTypeNameComponent`, it becomes `{blockContentTypeName:}`.
+  or, with `UseContentTypeNameComponent`, it becomes `{dufmBlockContentTypeName:}`.
 
 ### NuGet Package File Deployment
 

@@ -33,7 +33,7 @@ public static class BlockLabelUfmConverter
 	/// <param name="Label">The stored label.</param>
 	/// <param name="ContentTypeName">Name of the block's element type, used to replace $contentTypeName. Optional.</param>
 	/// <param name="UseContentTypeNameComponent">
-	/// Replaces a standalone $contentTypeName with the {blockContentTypeName:} UFM component, which resolves
+	/// Replaces a standalone $contentTypeName with the {dufmBlockContentTypeName:} UFM component, which resolves
 	/// the name at render time. Requires the Dragonfly UFM components. When false, or when the expression is
 	/// not standalone, the element type name is written into the label instead.
 	/// </param>
@@ -75,7 +75,7 @@ public static class BlockLabelUfmConverter
 		//A UFM component cannot live inside a ${ } expression, so only a standalone expression can use one.
 		if (UseContentTypeNameComponent && expression == "$contentTypeName")
 		{
-			return "{blockContentTypeName:}";
+			return "{dufmBlockContentTypeName:}";
 		}
 
 		var component = ComponentFor(expression);
@@ -92,7 +92,7 @@ public static class BlockLabelUfmConverter
 
 		if (ArrayIndex.IsMatch(expression))
 		{
-			Conversion.Warnings.Add($"'{expression}' reads into a picker value: use {{linkDisplay: alias}}, {{linkUrl: alias}} or {{umbLink: alias}}.");
+			Conversion.Warnings.Add($"'{expression}' reads into a picker value: use {{dufmLinkDisplay: alias}}, {{dufmLinkUrl: alias}} or {{umbLink: alias}}.");
 		}
 
 		if (expression.Contains("$contentTypeName"))
@@ -131,13 +131,13 @@ public static class BlockLabelUfmConverter
 		var display = LinkDisplay.Match(Expression);
 		if (display.Success)
 		{
-			return $"{{linkDisplay: {display.Groups[1].Value}}}";
+			return $"{{dufmLinkDisplay: {display.Groups[1].Value}}}";
 		}
 
 		var url = LinkUrl.Match(Expression);
 		if (url.Success)
 		{
-			return $"{{linkUrl: {url.Groups[1].Value}}}";
+			return $"{{dufmLinkUrl: {url.Groups[1].Value}}}";
 		}
 
 		var name = LinkName.Match(Expression);

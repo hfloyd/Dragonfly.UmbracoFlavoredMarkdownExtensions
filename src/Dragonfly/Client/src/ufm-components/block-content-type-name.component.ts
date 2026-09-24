@@ -75,7 +75,7 @@ export class UfmBlockContentTypeNameElement extends UmbLitElement {
 }
 
 /**
- * UFM component: `{blockContentTypeName:}`, or `{blockContentTypeName: Block}` to set fallback text
+ * UFM component: `{dufmBlockContentTypeName:}`, or `{dufmBlockContentTypeName: Block}` to set fallback text
  * for when the element type name cannot be resolved.
  */
 export class UfmBlockContentTypeNameComponent extends UmbUfmComponentBase {

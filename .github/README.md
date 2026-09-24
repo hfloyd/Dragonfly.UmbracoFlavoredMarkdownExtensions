@@ -33,14 +33,14 @@ rendered — block labels, templated labels, property descriptions.
 
 ## UFM Components
 
-### `{blockContentTypeName:}`
+### `{dufmBlockContentTypeName:}`
 
 Renders the name of a block's content element type — the UFM replacement for AngularJS
 `{{$contentTypeName}}`, which has no built-in equivalent.
 
 ```
-{blockContentTypeName:}                 renders e.g. "Rich Text Editor"
-{blockContentTypeName: Unknown block}   fallback text when the name cannot be resolved
+{dufmBlockContentTypeName:}                 renders e.g. "Rich Text Editor"
+{dufmBlockContentTypeName: Unknown block}   fallback text when the name cannot be resolved
 ```
 
 The colon is required even with no fallback text, because the component has no single-character
@@ -49,13 +49,14 @@ marker.
 It resolves the name on the block card and in the block workspace overlay, which expose different
 contexts.
 
-### `{linkDisplay: myLinkPropertyAlias}`
+### `{dufmLinkDisplay: myLinkPropertyAlias}`
 
 Describes a link picker (Multi URL Picker) value using a cascading approach: the linked
-item's name when content or media is picked, otherwise the link title, otherwise the URL.
+item's name when content or media is picked, otherwise the link title, otherwise the URL with its
+query string or anchor (an anchor-only link shows just the anchor, e.g. `#contact`).
 
 ```
-{linkDisplay: myLinkPropertyAlias}
+{dufmLinkDisplay: myLinkPropertyAlias}
 ```
 
 Replaces the old pattern:
@@ -67,16 +68,27 @@ Replaces the old pattern:
 Umbraco's built-in `{umbLink: myLinkPropertyAlias}` prefers the link's title over the item name; use this one
 when you want the content node's name first. Multiple links are joined with commas.
 
-### `{linkUrl: myLinkPropertyAlias}`
+### `{dufmLinkUrl: myLinkPropertyAlias}`
 
 Renders the URL of a link picker value.
 
 ```
-{linkUrl: myLinkPropertyAlias}
+{dufmLinkUrl: myLinkPropertyAlias}
 ```
 
 Document and media links store only a key, so their URLs are looked up; external links use the URL
-stored in the value. Any query string on the link is appended.
+stored in the value. The link's query string or anchor is not included; use
+`{dufmLinkUrlWithAnchor: …}` for that.
+
+### `{dufmLinkUrlWithAnchor: myLinkPropertyAlias}`
+
+Renders the URL of a link picker value, like `{dufmLinkUrl: …}`, with the link's query string or anchor
+appended (e.g. `/contact-us/#form` or `https://example.com?ref=x`). A link that is only an anchor
+renders as the anchor itself (`#contact`).
+
+```
+{dufmLinkUrlWithAnchor: myLinkPropertyAlias}
+```
 
 ## Block Label Conversion
 
@@ -102,7 +114,7 @@ public class MyController(BlockLabelUfmMigrator migrator) : Controller
 
 **Run it with `DryRun: true` first.** The report lists every label with its original text, the
 proposed UFM, and any warnings, without saving anything. `UseContentTypeNameComponent: true` emits
-`{blockContentTypeName:}` for `$contentTypeName`; with `false`, the element type's name is written
+`{dufmBlockContentTypeName:}` for `$contentTypeName`; with `false`, the element type's name is written
 into the label instead, which needs no package installed at render time.
 
 ### What it converts
@@ -111,13 +123,13 @@ into the label instead, which needs no package installed at render time.
 | --- | --- |
 | `{{Title}}` | `${ Title }` |
 | `{{$index}}` | `${ $index }` |
-| `{{$contentTypeName}}` | `{blockContentTypeName:}` or the element type's name |
+| `{{$contentTypeName}}` | `{dufmBlockContentTypeName:}` or the element type's name |
 | `{{$settings.umbracoNaviHide == 1 ? 'a' : 'b'}}` | `${ $settings.umbracoNaviHide ? 'a' : 'b' }` |
 | `{{!!Name ? Name : Other}}` | `${ Name ? Name : Other }` |
 | `{{Body \| ncRichText \| truncate:true:150}}` | `${ Body \| stripHtml \| truncate:150 }` |
 | `{{Link[0]["name"]}}` | `{umbLink: Link}` |
-| `{{Link[0]["url"]}}` | `{linkUrl: Link}` |
-| `{{Link[0]["nodeName"] ? … : …}}` | `{linkDisplay: Link}` |
+| `{{Link[0]["url"]}}` | `{dufmLinkUrl: Link}` |
+| `{{Link[0]["nodeName"] ? … : …}}` | `{dufmLinkDisplay: Link}` |
 | `{{Layout \| ncNodeName}}` | `{umbContentName: Layout}` |
 
 Two of these are behaviour fixes rather than translations. `!!` is a parse error in UFM's expression

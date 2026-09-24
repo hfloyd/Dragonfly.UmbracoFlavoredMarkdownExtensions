@@ -37,6 +37,14 @@ export function parseLinkValues(value: unknown): Array<UfmLinkValue> {
     .map(withResolvedIdentity);
 }
 
+/**
+ * Appends a link's query string, which holds any anchor, to a URL. An anchor-only link has no URL,
+ * so its query string is returned on its own.
+ */
+export function withQueryString(link: UfmLinkValue, url?: string): string | undefined {
+  return `${url ?? ""}${link.queryString ?? ""}` || undefined;
+}
+
 function withResolvedIdentity(link: UfmLinkValue): UfmLinkValue {
   if (link.unique || !link.udi) return link;
 

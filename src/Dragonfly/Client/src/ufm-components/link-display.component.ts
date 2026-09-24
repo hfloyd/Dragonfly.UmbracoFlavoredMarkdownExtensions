@@ -3,12 +3,12 @@ import { UmbUfmComponentBase, UmbUfmElementBase, UMB_UFM_RENDER_CONTEXT } from "
 import type { UfmToken } from "@umbraco-cms/backoffice/ufm";
 import { UMB_DOCUMENT_ENTITY_TYPE, UmbDocumentItemRepository } from "@umbraco-cms/backoffice/document";
 import { UMB_MEDIA_ENTITY_TYPE, UmbMediaItemRepository } from "@umbraco-cms/backoffice/media";
-import { parseLinkValues } from "./link-value.function.js";
+import { parseLinkValues, withQueryString } from "./link-value.function.js";
 import type { UfmLinkValue } from "./link-value.function.js";
 
 /**
  * Describes a link picker value the way AngularJS labels did: the linked item's name when one is
- * picked, otherwise the link title, otherwise the URL.
+ * picked, otherwise the link title, otherwise the URL with its query string or anchor.
  */
 @customElement("ufm-link-display")
 export class UfmLinkDisplayElement extends UmbUfmElementBase {
@@ -42,7 +42,7 @@ export class UfmLinkDisplayElement extends UmbUfmElementBase {
   }
 
   async #describe(link: UfmLinkValue): Promise<string> {
-    return (await this.#itemName(link)) || link?.name || link?.url || "";
+    return (await this.#itemName(link)) || link?.name || withQueryString(link, link?.url) || "";
   }
 
   async #itemName(link: UfmLinkValue): Promise<string | undefined> {
@@ -76,7 +76,7 @@ export class UfmLinkDisplayElement extends UmbUfmElementBase {
 }
 
 /**
- * UFM component: `{linkDisplay: myLink}`
+ * UFM component: `{dufmLinkDisplay: myLink}`
  */
 export class UfmLinkDisplayComponent extends UmbUfmComponentBase {
   render(token: UfmToken): string | undefined {

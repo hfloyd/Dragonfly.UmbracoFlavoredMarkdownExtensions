@@ -5,7 +5,7 @@ export const manifests: Array<UmbExtensionManifest> = [
     type: "ufmComponent",
     api: () => import("./block-content-type-name.component.js"),
     meta: {
-      alias: "blockContentTypeName",
+      alias: "dufmBlockContentTypeName",
     },
   },
   {
@@ -14,7 +14,7 @@ export const manifests: Array<UmbExtensionManifest> = [
     type: "ufmComponent",
     api: () => import("./link-display.component.js"),
     meta: {
-      alias: "linkDisplay",
+      alias: "dufmLinkDisplay",
     },
   },
   {
@@ -23,7 +23,16 @@ export const manifests: Array<UmbExtensionManifest> = [
     type: "ufmComponent",
     api: () => import("./link-url.component.js"),
     meta: {
-      alias: "linkUrl",
+      alias: "dufmLinkUrl",
+    },
+  },
+  {
+    name: "Link URL With Anchor UFM Component",
+    alias: "Dragonfly.UfmComponent.LinkUrlWithAnchor",
+    type: "ufmComponent",
+    api: () => import("./link-url-with-anchor.component.js"),
+    meta: {
+      alias: "dufmLinkUrlWithAnchor",
     },
   },
 ];
