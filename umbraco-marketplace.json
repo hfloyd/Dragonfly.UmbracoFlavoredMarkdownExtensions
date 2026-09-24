@@ -1,0 +1,14 @@
+{
+    "$schema": "https://marketplace.umbraco.com/umbraco-marketplace-schema.json", 
+    "AuthorDetails": {
+      "Name": "Heather Floyd",
+      "ImageUrl": "https://github.com/hfloyd.png"
+    },
+    "Category": "",
+    "Description": "",
+    "LicenseTypes": [ "Free" ],
+    "IssueTrackerUrl": "https://github.com/hfloyd/Dragonfly.UmbracoFlavoredMarkdownExtensions/issues",
+    "PackageType": "Package",
+    "Tags": [],
+    "Title": "Umbraco Flavored Markdown Extensions"
+  }

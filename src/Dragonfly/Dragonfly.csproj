@@ -1,0 +1,85 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+
+    <ContentTargetFolders>content</ContentTargetFolders>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <EnableDefaultContentItems>false</EnableDefaultContentItems>
+
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <StaticWebAssetBasePath>/</StaticWebAssetBasePath>
+    <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
+  </PropertyGroup>
+
+
+	<!-- Package Description-->
+  <PropertyGroup>
+     <PackageId>Dragonfly.UmbracoFlavoredMarkdownExtensions</PackageId>
+    <Title>Dragonfly Umbraco Flavored Markdown Extensions</Title>
+ 
+    <Product>Dragonfly UFM Extensions</Product>
+    <Description>Additional UFM Components and tools for Umbraco 17+ sites.</Description>
+	<PackageProjectUrl>https://DragonflyLibraries.com/umbraco-packages/ufm-extensions/</PackageProjectUrl>
+		<RepositoryType>GIT</RepositoryType>
+		<RepositoryUrl>https://github.com/hfloyd/Dragonfly.UmbracoFlavoredMarkdownExtensions</RepositoryUrl>
+ <PackageIcon></PackageIcon>
+    	<PackageTags>Umbraco;umbraco-marketplace;Umbraco-17;</PackageTags>
+
+</PropertyGroup>
+
+	<!-- Author Info + Legal-->
+	<PropertyGroup>
+		<Authors>HFloyd</Authors>
+		<Company>Heather Floyd</Company>
+    <Copyright>$([System.DateTime]::UtcNow.ToString(`yyyy`)) © Heather Floyd [www.HeatherFloyd.com]</Copyright>
+     <RepositoryUrl>https://github.com/hfloyd/Dragonfly.UmbracoFlavoredMarkdownExtensions</RepositoryUrl>
+  
+    <PackageReadmeFile>README_nuget.md</PackageReadmeFile>
+     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+		<PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+	</PropertyGroup>
+
+	<!-- Assembly Info-->
+	<PropertyGroup>
+	<RootNamespace>Dragonfly</RootNamespace>
+		<AssemblyName>Dragonfly.UfmExtensions</AssemblyName>
+		<Version>17.0.0</Version>
+		<AssemblyVersion>$(Version)</AssemblyVersion>
+		<FileVersion>$(Version)</FileVersion>
+    <VersionSuffix Condition="'$(Configuration)'=='Debug'">-prerelease$([System.DateTime]::UtcNow.ToString(`yyyyMMddHHmm`))</VersionSuffix>
+		<PackageReleaseNotes>
+			New
+		</PackageReleaseNotes>
+   
+
+		<IncludeSymbols>True</IncludeSymbols>
+		<SymbolPackageFormat>symbols.nupkg</SymbolPackageFormat>
+		<Nullable>enable</Nullable>
+   
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Umbraco.Cms.Web.Website" />
+    <PackageReference Include="Umbraco.Cms.Web.Common" />
+    <PackageReference Include="Umbraco.Cms.Api.Common" />
+    <PackageReference Include="Umbraco.Cms.Api.Management" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Dont include the client folder as part of packaging nuget build -->
+    <Content Remove="Client\**" />
+
+    <!-- However make the Umbraco-package.json included for dotnet pack or nuget package and visible to the solution -->
+    <None Include="Client\public\umbraco-package.json" Pack="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\docs\README_nuget.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+
+</Project>

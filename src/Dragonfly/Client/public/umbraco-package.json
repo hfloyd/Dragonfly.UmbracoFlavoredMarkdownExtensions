@@ -1,0 +1,14 @@
+{
+  "id": "UmbracoFlavoredMarkdownExtensions",
+  "name": "UmbracoFlavoredMarkdownExtensions",
+  "version": "0.0.0",
+  "allowTelemetry": true,
+  "extensions": [
+    {
+      "name": "Umbraco Flavored Markdown Extensions Bundle",
+      "alias": "UmbracoFlavoredMarkdownExtensions.Bundle",
+      "type": "bundle",
+      "js": "/App_Plugins/UmbracoFlavoredMarkdownExtensions/umbraco-flavored-markdown-extensions.js"
+    }
+  ]
+}
