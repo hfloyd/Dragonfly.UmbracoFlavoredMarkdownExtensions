@@ -36,7 +36,7 @@ const a = [
     name: "Link Display UFM Component",
     alias: "Dragonfly.UfmComponent.LinkDisplay",
     type: "ufmComponent",
-    api: () => import("./link-display.component-ChWyKkjZ.js"),
+    api: () => import("./link-display.component-CrUXO3Y8.js"),
     meta: {
       alias: "linkDisplay"
     }
@@ -45,7 +45,7 @@ const a = [
     name: "Link URL UFM Component",
     alias: "Dragonfly.UfmComponent.LinkUrl",
     type: "ufmComponent",
-    api: () => import("./link-url.component-CsAahXXb.js"),
+    api: () => import("./link-url.component-Cwg5dq97.js"),
     meta: {
       alias: "linkUrl"
     }
