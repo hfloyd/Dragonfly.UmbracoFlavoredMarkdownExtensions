@@ -17,6 +17,7 @@ build/
 *.user
 *.userosscache
 *.sln.docstates
+/dev-local-only/
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
@@ -369,3 +370,4 @@ src/.idea
 
 # MacOS
 .DS_Store
+
