@@ -1,0 +1,119 @@
+namespace Dragonfly.UfmExtensions.Tests;
+
+public class BlockLabelUfmConverterTests
+{
+	private const string ContentTypeName = "Rich Text";
+
+	private const string LinkDisplayLabel = """{{Link[0]["nodeName"] ? Link[0]["nodeName"] : (Link[0]["name"] ? Link[0]["name"] : Link[0]["url"])}}""";
+
+	[Theory]
+	[InlineData(null)]
+	[InlineData("")]
+	[InlineData("Plain label")]
+	public void Label_without_expressions_needs_no_change(string? Label)
+	{
+		var result = BlockLabelUfmConverter.Convert(Label, ContentTypeName);
+
+		Assert.Equal(BlockLabelConversionStatus.NoChangeNeeded, result.Status);
+		Assert.Equal(Label ?? string.Empty, result.ConvertedLabel);
+	}
+
+	[Theory]
+	[InlineData("{{Title}}", "${ Title }")]
+	[InlineData("{{$index}}", "${ $index }")]
+	[InlineData("Item {{$index}}: {{Title}}", "Item ${ $index }: ${ Title }")]
+	[InlineData("{{$settings.umbracoNaviHide == 1 ? 'a' : 'b'}}", "${ $settings.umbracoNaviHide ? 'a' : 'b' }")]
+	[InlineData("{{!!Name ? Name : Other}}", "${ Name ? Name : Other }")]
+	[InlineData("{{Body | ncRichText | truncate:true:150}}", "${ Body | stripHtml | truncate:150 }")]
+	[InlineData("{{'Literal text'}}", "Literal text")]
+	public void Expressions_convert_to_ufm_expressions(string Label, string Expected)
+	{
+		var result = BlockLabelUfmConverter.Convert(Label, ContentTypeName);
+
+		Assert.Equal(BlockLabelConversionStatus.Converted, result.Status);
+		Assert.Equal(Expected, result.ConvertedLabel);
+	}
+
+	[Theory]
+	[InlineData("{{$contentTypeName}}", "{dufmBlockContentTypeName:}")]
+	[InlineData(LinkDisplayLabel, "{dufmLinkDisplay: Link}")]
+	[InlineData("""{{Link[0]["url"]}}""", "{dufmLinkUrl: Link}")]
+	[InlineData("""{{Link[0]["name"]}}""", "{umbLink: Link}")]
+	[InlineData("{{Layout | ncNodeName}}", "{umbContentName: Layout}")]
+	[InlineData("{{Image | ncMediaName}}", "{umbContentName: Image}")]
+	public void Dragonfly_components_are_used_by_default(string Label, string Expected)
+	{
+		var result = BlockLabelUfmConverter.Convert(Label, ContentTypeName);
+
+		Assert.Equal(BlockLabelConversionStatus.Converted, result.Status);
+		Assert.Equal(Expected, result.ConvertedLabel);
+	}
+
+	[Theory]
+	[InlineData("{{$contentTypeName}}", ContentTypeName)]
+	[InlineData(LinkDisplayLabel, "{umbLink: Link}")]
+	[InlineData("""{{Link[0]["name"]}}""", "{umbLink: Link}")]
+	[InlineData("{{Layout | ncNodeName}}", "{umbContentName: Layout}")]
+	public void Built_in_components_are_used_without_Dragonfly_components(string Label, string Expected)
+	{
+		var result = BlockLabelUfmConverter.Convert(Label, ContentTypeName, UseDragonflyUfmComponents: false);
+
+		Assert.Equal(BlockLabelConversionStatus.Converted, result.Status);
+		Assert.Equal(Expected, result.ConvertedLabel);
+		Assert.DoesNotContain("dufm", result.ConvertedLabel);
+	}
+
+	[Fact]
+	public void Link_url_needs_review_without_Dragonfly_components()
+	{
+		var result = BlockLabelUfmConverter.Convert("""{{Link[0]["url"]}}""", ContentTypeName, UseDragonflyUfmComponents: false);
+
+		Assert.Equal(BlockLabelConversionStatus.NeedsManualReview, result.Status);
+		Assert.Contains(result.Warnings, x => x.Contains("no built-in UFM component shows its URL"));
+	}
+
+	[Fact]
+	public void Content_type_name_inside_an_expression_is_written_in_as_text()
+	{
+		var result = BlockLabelUfmConverter.Convert("{{$contentTypeName + ': ' + Title}}", "Editor's Pick");
+
+		Assert.Equal(BlockLabelConversionStatus.Converted, result.Status);
+		Assert.Equal(@"${ 'Editor\'s Pick' + ': ' + Title }", result.ConvertedLabel);
+	}
+
+	[Fact]
+	public void Content_type_name_without_a_resolved_name_needs_review()
+	{
+		var result = BlockLabelUfmConverter.Convert("{{$contentTypeName + ': ' + Title}}", ContentTypeName: null);
+
+		Assert.Equal(BlockLabelConversionStatus.NeedsManualReview, result.Status);
+		Assert.Single(result.Warnings);
+	}
+
+	[Fact]
+	public void Picked_name_inside_a_ternary_needs_review()
+	{
+		var result = BlockLabelUfmConverter.Convert("{{BlockName ? BlockName : (ResourceNode | ncNodeName)}}", ContentTypeName);
+
+		Assert.Equal(BlockLabelConversionStatus.NeedsManualReview, result.Status);
+		Assert.Contains(result.Warnings, x => x.Contains("umbContentName"));
+	}
+
+	[Fact]
+	public void Components_and_expressions_combine_in_one_label()
+	{
+		var result = BlockLabelUfmConverter.Convert("{{Title}} - {{$contentTypeName}}", ContentTypeName);
+
+		Assert.Equal("${ Title } - {dufmBlockContentTypeName:}", result.ConvertedLabel);
+	}
+
+	[Fact]
+	public void Original_label_is_kept_on_the_result()
+	{
+		const string label = "{{Title}}";
+
+		var result = BlockLabelUfmConverter.Convert(label, ContentTypeName);
+
+		Assert.Equal(label, result.OriginalLabel);
+	}
+}

@@ -28,6 +28,7 @@ src/
 │   │   ├── src/api/*.gen.ts            Auto-generated OpenAPI client — never edit by hand
 │   │   └── public/umbraco-package.json Loads the built bundle; copied into the output folder
 │   └── wwwroot/App_Plugins/Dragonfly.UfmComponents/   Vite build output (ships as static web assets)
+├── UfmExtensions.Tests/                xUnit tests (BlockLabelUfmConverter)
 └── UfmExtensions.TestSite/             Umbraco site for manual testing
 ```
 
@@ -38,6 +39,9 @@ src/
 ```powershell
 # Build the package
 dotnet build Dragonfly/Dragonfly.csproj -c Debug
+
+# Run the unit tests
+dotnet test UfmExtensions.Tests/UfmExtensions.Tests.csproj -c Debug
 
 # Run the test site (Umbraco at https://localhost:44365)
 dotnet run --project UfmExtensions.TestSite/UfmExtensions.TestSite.csproj
