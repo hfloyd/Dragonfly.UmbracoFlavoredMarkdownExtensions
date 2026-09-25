@@ -1,8 +1,5 @@
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-// Machine-specific settings and secrets, gitignored, and loaded last so they override every other file.
-builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
-
 builder.CreateUmbracoBuilder()
     .AddBackOffice()
     .AddWebsite()
