@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { ConvertBlockLabelsData, ConvertBlockLabelsErrors, ConvertBlockLabelsResponses, PingData, PingErrors, PingResponses, PreviewBlockLabelConversionData, PreviewBlockLabelConversionErrors, PreviewBlockLabelConversionResponses } from './types.gen';
+import type { ConvertBlockLabelsData, ConvertBlockLabelsErrors, ConvertBlockLabelsResponses, EvaluateBlockLabelsData, EvaluateBlockLabelsErrors, EvaluateBlockLabelsResponses, PingData, PingErrors, PingResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -19,18 +19,18 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
 };
 
 export class UmbracoFlavoredMarkdownExtensionsService {
-    public static previewBlockLabelConversion<ThrowOnError extends boolean = false>(options?: Options<PreviewBlockLabelConversionData, ThrowOnError>): RequestResult<PreviewBlockLabelConversionResponses, PreviewBlockLabelConversionErrors, ThrowOnError> {
-        return (options?.client ?? client).get<PreviewBlockLabelConversionResponses, PreviewBlockLabelConversionErrors, ThrowOnError>({
+    public static convertBlockLabels<ThrowOnError extends boolean = false>(options?: Options<ConvertBlockLabelsData, ThrowOnError>): RequestResult<ConvertBlockLabelsResponses, ConvertBlockLabelsErrors, ThrowOnError> {
+        return (options?.client ?? client).post<ConvertBlockLabelsResponses, ConvertBlockLabelsErrors, ThrowOnError>({
             security: [{ scheme: 'bearer', type: 'http' }],
             url: '/umbraco/ufmextensions/api/v1/convertBlockLabelsToUfm',
             ...options
         });
     }
     
-    public static convertBlockLabels<ThrowOnError extends boolean = false>(options?: Options<ConvertBlockLabelsData, ThrowOnError>): RequestResult<ConvertBlockLabelsResponses, ConvertBlockLabelsErrors, ThrowOnError> {
-        return (options?.client ?? client).post<ConvertBlockLabelsResponses, ConvertBlockLabelsErrors, ThrowOnError>({
+    public static evaluateBlockLabels<ThrowOnError extends boolean = false>(options?: Options<EvaluateBlockLabelsData, ThrowOnError>): RequestResult<EvaluateBlockLabelsResponses, EvaluateBlockLabelsErrors, ThrowOnError> {
+        return (options?.client ?? client).get<EvaluateBlockLabelsResponses, EvaluateBlockLabelsErrors, ThrowOnError>({
             security: [{ scheme: 'bearer', type: 'http' }],
-            url: '/umbraco/ufmextensions/api/v1/convertBlockLabelsToUfm',
+            url: '/umbraco/ufmextensions/api/v1/evaluateBlockLabelsToUfm',
             ...options
         });
     }

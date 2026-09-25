@@ -27,9 +27,9 @@ public sealed class BlockLabelUfmMigrator(
 {
 	private static readonly string[] BlockEditorAliases = ["Umbraco.BlockList", "Umbraco.BlockGrid"];
 
-	public async Task<BlockLabelUfmReport> RunAsync(bool DryRun, Guid UserKey, bool UseContentTypeNameComponent = false)
+	public async Task<BlockLabelUfmReport> RunAsync(bool DryRun, Guid UserKey, bool UseDragonflyUfmComponents = true)
 	{
-		var report = new BlockLabelUfmReport { DryRun = DryRun, UseContentTypeNameComponent = UseContentTypeNameComponent };
+		var report = new BlockLabelUfmReport { DryRun = DryRun, UseDragonflyUfmComponents = UseDragonflyUfmComponents };
 
 		var dataTypes = (await dataTypeService.GetAllAsync())
 			.Where(x => BlockEditorAliases.Contains(x.EditorAlias))
@@ -95,24 +95,22 @@ public sealed class BlockLabelUfmMigrator(
 	private bool ConvertLabel(JsonObject Owner, string PropertyName, IDataType DataType, string? ContentTypeName, string Description, BlockLabelUfmReport Report)
 	{
 		var label = Owner[PropertyName]?.GetValue<string>();
-		var conversion = BlockLabelUfmConverter.Convert(label, ContentTypeName, Report.UseContentTypeNameComponent);
+		var conversion = BlockLabelUfmConverter.Convert(label, ContentTypeName, Report.UseDragonflyUfmComponents);
 
 		switch (conversion.Status)
 		{
 			case BlockLabelConversionStatus.NoChangeNeeded:
-				Report.LabelsUnchanged++;
+				Report.LabelsUnchanged.Add(BlockLabelChange.From(DataType, Description, PropertyName, conversion, Applied: false));
 				return false;
 
 			//Half-converting a label that needs a UFM component would leave it broken, so leave it as it is.
 			case BlockLabelConversionStatus.NeedsManualReview:
-				Report.LabelsNeedingReview++;
-				Report.Changes.Add(BlockLabelChange.From(DataType, Description, PropertyName, conversion, Applied: false));
+				Report.LabelsNeedingReview.Add(BlockLabelChange.From(DataType, Description, PropertyName, conversion, Applied: false));
 				return false;
 
 			default:
 				Owner[PropertyName] = conversion.ConvertedLabel;
-				Report.LabelsConverted++;
-				Report.Changes.Add(BlockLabelChange.From(DataType, Description, PropertyName, conversion, Applied: !Report.DryRun));
+				Report.LabelsConverted.Add(BlockLabelChange.From(DataType, Description, PropertyName, conversion, Applied: !Report.DryRun));
 				return true;
 		}
 	}
@@ -129,19 +127,23 @@ public class BlockLabelUfmReport
 {
 	public bool DryRun { get; set; }
 
-	public bool UseContentTypeNameComponent { get; set; }
+	public bool UseDragonflyUfmComponents { get; set; }
 
 	public int DataTypesScanned { get; set; }
 
 	public int DataTypesSaved { get; set; }
 
-	public int LabelsConverted { get; set; }
+	public int LabelsNeedingReviewCount => LabelsNeedingReview.Count;
 
-	public int LabelsNeedingReview { get; set; }
+	public int LabelsConvertedCount => LabelsConverted.Count;
 
-	public int LabelsUnchanged { get; set; }
+	public int LabelsUnchangedCount => LabelsUnchanged.Count;
 
-	public List<BlockLabelChange> Changes { get; set; } = [];
+	public List<BlockLabelChange> LabelsNeedingReview { get; set; } = [];
+
+	public List<BlockLabelChange> LabelsConverted { get; set; } = [];
+
+	public List<BlockLabelChange> LabelsUnchanged { get; set; } = [];
 }
 
 public class BlockLabelChange

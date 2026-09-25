@@ -105,7 +105,7 @@ public class MyController(BlockLabelUfmMigrator migrator) : Controller
         BlockLabelUfmReport report = await migrator.RunAsync(
             DryRun: testOnly,
             UserKey: currentUserKey,
-            UseContentTypeNameComponent: true);
+            UseDragonflyUfmComponents: true);
 
         return new JsonResult(report);
     }
@@ -113,9 +113,12 @@ public class MyController(BlockLabelUfmMigrator migrator) : Controller
 ```
 
 **Run it with `DryRun: true` first.** The report lists every label with its original text, the
-proposed UFM, and any warnings, without saving anything. `UseContentTypeNameComponent: true` emits
-`{dufmBlockContentTypeName:}` for `$contentTypeName`; with `false`, the element type's name is written
-into the label instead, which needs no package installed at render time.
+proposed UFM, and any warnings, without saving anything.
+
+`UseDragonflyUfmComponents` (default `true`) uses this package's UFM components wherever they cover an
+expression, so the package must stay installed for the labels to render. With `false`, only Umbraco's
+built-in components are used — install the package just to convert your labels, then remove it before
+going live.
 
 The package also exposes the migrator on its Management API, for users with Settings section access.
 Call it from the Swagger UI at `/umbraco/swagger` (the `dragonfly-ufmextensions` document), since
@@ -123,23 +126,23 @@ Management API endpoints need a bearer token:
 
 | Request | Does |
 | --- | --- |
-| `GET /umbraco/ufmextensions/api/v1/convertBlockLabelsToUfm?UseContentTypeNameComponent=true` | Dry run — returns the report, saves nothing |
-| `POST /umbraco/ufmextensions/api/v1/convertBlockLabelsToUfm?UseContentTypeNameComponent=true` | Converts the labels and saves the changed datatypes |
+| `GET /umbraco/ufmextensions/api/v1/evaluateBlockLabelsToUfm?UseDragonflyUfmComponents=true` | Returns the report of how each label would convert; saves nothing |
+| `POST /umbraco/ufmextensions/api/v1/convertBlockLabelsToUfm?UseDragonflyUfmComponents=true` | Converts the labels and saves the changed datatypes |
 
 ### What it converts
 
-| AngularJS | UFM |
-| --- | --- |
-| `{{Title}}` | `${ Title }` |
-| `{{$index}}` | `${ $index }` |
-| `{{$contentTypeName}}` | `{dufmBlockContentTypeName:}` or the element type's name |
-| `{{$settings.umbracoNaviHide == 1 ? 'a' : 'b'}}` | `${ $settings.umbracoNaviHide ? 'a' : 'b' }` |
-| `{{!!Name ? Name : Other}}` | `${ Name ? Name : Other }` |
-| `{{Body \| ncRichText \| truncate:true:150}}` | `${ Body \| stripHtml \| truncate:150 }` |
-| `{{Link[0]["name"]}}` | `{umbLink: Link}` |
-| `{{Link[0]["url"]}}` | `{dufmLinkUrl: Link}` |
-| `{{Link[0]["nodeName"] ? … : …}}` | `{dufmLinkDisplay: Link}` |
-| `{{Layout \| ncNodeName}}` | `{umbContentName: Layout}` |
+| AngularJS | UFM | UFM with `UseDragonflyUfmComponents: false` |
+| --- | --- | --- |
+| `{{Title}}` | `${ Title }` | same |
+| `{{$index}}` | `${ $index }` | same |
+| `{{$contentTypeName}}` | `{dufmBlockContentTypeName:}` | the element type's name, as text |
+| `{{$settings.umbracoNaviHide == 1 ? 'a' : 'b'}}` | `${ $settings.umbracoNaviHide ? 'a' : 'b' }` | same |
+| `{{!!Name ? Name : Other}}` | `${ Name ? Name : Other }` | same |
+| `{{Body \| ncRichText \| truncate:true:150}}` | `${ Body \| stripHtml \| truncate:150 }` | same |
+| `{{Link[0]["name"]}}` | `{umbLink: Link}` | same |
+| `{{Link[0]["url"]}}` | `{dufmLinkUrl: Link}` | left for manual review — no built-in equivalent |
+| `{{Link[0]["nodeName"] ? … : …}}` | `{dufmLinkDisplay: Link}` | `{umbLink: Link}` (title first, then item name; no URL fallback) |
+| `{{Layout \| ncNodeName}}` | `{umbContentName: Layout}` | same |
 
 Two of these are behaviour fixes rather than translations. `!!` is a parse error in UFM's expression
 parser, and an empty value is already false, so it is simply dropped. `$settings.x == 1` never

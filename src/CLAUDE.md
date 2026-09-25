@@ -121,12 +121,17 @@ Block labels render in two separate places, which matters for any component read
 Conversion rules worth knowing:
 
 - `{{x}}` → `${ x }`; a standalone expression that a component covers becomes that component.
+  `ComponentSubstitutions` in `BlockLabelUfmConverter` maps each such pattern to a Dragonfly component
+  alias and a built-in fallback alias (or none); `UseDragonflyUfmComponents` (default `true`) picks
+  which. A new Dragonfly UFM component that replaces an AngularJS pattern needs a row there as well
+  as its `manifest.ts` entry.
 - `!!` is removed — the expression parser (`heximal-expressions`) rejects it, and an empty value is
   already falsy, so the test still behaves the same.
 - `$settings.x == 1` → `$settings.x`, because settings toggles are real booleans in v14+.
 - `| ncRichText` → `| stripHtml`; `| truncate:true:N` → `| truncate:N`.
-- `$contentTypeName` has no UFM equivalent: either the element type name is written into the label,
-  or, with `UseContentTypeNameComponent`, it becomes `{dufmBlockContentTypeName:}`.
+- `$contentTypeName` has no built-in UFM equivalent: a standalone one becomes
+  `{dufmBlockContentTypeName:}` with `UseDragonflyUfmComponents`; otherwise the element type name is
+  written into the label.
 
 ### NuGet Package File Deployment
 

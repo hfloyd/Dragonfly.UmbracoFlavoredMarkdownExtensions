@@ -19,7 +19,8 @@ public static class BlockLabelUfmConverter
 	private static readonly Regex QuotedLiteral = new(@"^'[^']*'$", RegexOptions.Compiled);
 	private static readonly Regex DoubleNegation = new(@"!!", RegexOptions.Compiled);
 
-	//Link picker patterns the AngularJS labels used, where a UFM component now covers the whole expression.
+	//AngularJS expressions that a UFM component covers on its own. Group 1, where present, is the component's argument.
+	private static readonly Regex StandaloneContentTypeName = new(@"^\$contentTypeName$", RegexOptions.Compiled);
 	private static readonly Regex LinkName = new(@"^(\w+)\[0\]\[""name""\]$", RegexOptions.Compiled);
 	private static readonly Regex LinkUrl = new(@"^(\w+)\[0\]\[""url""\]$", RegexOptions.Compiled);
 	private static readonly Regex LinkDisplay = new(
@@ -28,16 +29,29 @@ public static class BlockLabelUfmConverter
 	private static readonly Regex PickerName = new(@"^(\w+)\s*\|\s*nc(?:Node|Media)Name$", RegexOptions.Compiled);
 
 	/// <summary>
+	/// The UFM component each AngularJS expression becomes: one alias for when the Dragonfly UFM components are
+	/// available, and one using only Umbraco's built-in components. A null built-in alias means there is no
+	/// built-in equivalent, so the expression is converted as a plain ${ } expression instead.
+	/// </summary>
+	private static readonly ComponentSubstitution[] ComponentSubstitutions =
+	[
+		new(StandaloneContentTypeName, DragonflyAlias: "dufmBlockContentTypeName", BuiltInAlias: null),
+		new(LinkDisplay, DragonflyAlias: "dufmLinkDisplay", BuiltInAlias: "umbLink"),
+		new(LinkUrl, DragonflyAlias: "dufmLinkUrl", BuiltInAlias: null),
+		new(LinkName, DragonflyAlias: "umbLink", BuiltInAlias: "umbLink"),
+		new(PickerName, DragonflyAlias: "umbContentName", BuiltInAlias: "umbContentName"),
+	];
+
+	/// <summary>
 	/// Converts a single label.
 	/// </summary>
 	/// <param name="Label">The stored label.</param>
 	/// <param name="ContentTypeName">Name of the block's element type, used to replace $contentTypeName. Optional.</param>
-	/// <param name="UseContentTypeNameComponent">
-	/// Replaces a standalone $contentTypeName with the {dufmBlockContentTypeName:} UFM component, which resolves
-	/// the name at render time. Requires the Dragonfly UFM components. When false, or when the expression is
-	/// not standalone, the element type name is written into the label instead.
+	/// <param name="UseDragonflyUfmComponents">
+	/// Uses this package's UFM components where they cover an expression, which requires the package to stay installed.
+	/// When false, only Umbraco's built-in components are used, so the converted labels work without the package.
 	/// </param>
-	public static BlockLabelConversion Convert(string? Label, string? ContentTypeName, bool UseContentTypeNameComponent = false)
+	public static BlockLabelConversion Convert(string? Label, string? ContentTypeName, bool UseDragonflyUfmComponents = true)
 	{
 		var conversion = new BlockLabelConversion { OriginalLabel = Label ?? string.Empty };
 
@@ -54,7 +68,7 @@ public static class BlockLabelUfmConverter
 		foreach (Match match in Expression.Matches(Label))
 		{
 			converted.Append(Label, position, match.Index - position);
-			converted.Append(ConvertExpression(match.Groups[1].Value, ContentTypeName, UseContentTypeNameComponent, conversion));
+			converted.Append(ConvertExpression(match.Groups[1].Value, ContentTypeName, UseDragonflyUfmComponents, conversion));
 			position = match.Index + match.Length;
 		}
 
@@ -68,17 +82,12 @@ public static class BlockLabelUfmConverter
 		return conversion;
 	}
 
-	private static string ConvertExpression(string Expression, string? ContentTypeName, bool UseContentTypeNameComponent, BlockLabelConversion Conversion)
+	private static string ConvertExpression(string Expression, string? ContentTypeName, bool UseDragonflyUfmComponents, BlockLabelConversion Conversion)
 	{
 		var expression = Expression.Trim();
 
 		//A UFM component cannot live inside a ${ } expression, so only a standalone expression can use one.
-		if (UseContentTypeNameComponent && expression == "$contentTypeName")
-		{
-			return "{dufmBlockContentTypeName:}";
-		}
-
-		var component = ComponentFor(expression);
+		var component = ComponentFor(expression, UseDragonflyUfmComponents);
 		if (component is not null)
 		{
 			return component;
@@ -92,7 +101,9 @@ public static class BlockLabelUfmConverter
 
 		if (ArrayIndex.IsMatch(expression))
 		{
-			Conversion.Warnings.Add($"'{expression}' reads into a picker value: use {{dufmLinkDisplay: alias}}, {{dufmLinkUrl: alias}} or {{umbLink: alias}}.");
+			Conversion.Warnings.Add(UseDragonflyUfmComponents
+				? $"'{expression}' reads into a picker value: use {{dufmLinkDisplay: alias}}, {{dufmLinkUrl: alias}}, {{dufmLinkUrlWithAnchor: alias}} or {{umbLink: alias}}."
+				: $"'{expression}' reads into a picker value: {{umbLink: alias}} shows the link's name; no built-in UFM component shows its URL.");
 		}
 
 		if (expression.Contains("$contentTypeName"))
@@ -126,34 +137,33 @@ public static class BlockLabelUfmConverter
 	/// Maps an expression that a UFM component covers on its own. Anything more involved stays an
 	/// expression, because a component cannot be nested inside one.
 	/// </summary>
-	private static string? ComponentFor(string Expression)
+	private static string? ComponentFor(string Expression, bool UseDragonflyUfmComponents)
 	{
-		var display = LinkDisplay.Match(Expression);
-		if (display.Success)
+		foreach (var substitution in ComponentSubstitutions)
 		{
-			return $"{{dufmLinkDisplay: {display.Groups[1].Value}}}";
-		}
+			var match = substitution.Pattern.Match(Expression);
+			if (!match.Success)
+			{
+				continue;
+			}
 
-		var url = LinkUrl.Match(Expression);
-		if (url.Success)
-		{
-			return $"{{dufmLinkUrl: {url.Groups[1].Value}}}";
-		}
+			var alias = UseDragonflyUfmComponents ? substitution.DragonflyAlias : substitution.BuiltInAlias;
 
-		var name = LinkName.Match(Expression);
-		if (name.Success)
-		{
-			return $"{{umbLink: {name.Groups[1].Value}}}";
-		}
-
-		var picked = PickerName.Match(Expression);
-		if (picked.Success)
-		{
-			return $"{{umbContentName: {picked.Groups[1].Value}}}";
+			return alias is null ? null : UfmComponent(alias, match.Groups[1].Value);
 		}
 
 		return null;
 	}
+
+	//A component with no argument still needs its colon: {alias:}
+	private static string UfmComponent(string Alias, string Argument)
+	{
+		return Argument.Length == 0
+			? $"{{{Alias}:}}"
+			: $"{{{Alias}: {Argument}}}";
+	}
+
+	private sealed record ComponentSubstitution(Regex Pattern, string DragonflyAlias, string? BuiltInAlias);
 }
 
 public enum BlockLabelConversionStatus

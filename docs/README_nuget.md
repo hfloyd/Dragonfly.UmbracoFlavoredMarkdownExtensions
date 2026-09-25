@@ -20,7 +20,9 @@ descriptions):
 **A block label converter.** `BlockLabelUfmMigrator` is registered in DI and rewrites the AngularJS
 labels on every Block List and Block Grid datatype, including Block Grid area create labels. Run it
 with `DryRun: true` for a full report of what would change before anything is saved. Labels it
-cannot convert completely are reported and left untouched rather than half-rewritten.
+cannot convert completely are reported and left untouched rather than half-rewritten. With
+`UseDragonflyUfmComponents: false` it uses only Umbraco's built-in components, so you can install
+the package just to convert your labels.
 
 ## Installation
 

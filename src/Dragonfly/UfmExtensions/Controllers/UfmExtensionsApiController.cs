@@ -26,13 +26,13 @@ public class UfmExtensionsApiController : UfmExtensionsApiControllerBase
     public string Ping() => "Pong";
 
     /// <summary>
-    /// Reports how every Block List and Block Grid label would convert to UFM, without saving anything.
+    /// Reports how every Block List and Block Grid label would convert to UFM.
     /// </summary>
-    [HttpGet("convertBlockLabelsToUfm")]
+    [HttpGet("evaluateBlockLabelsToUfm")]
     [Authorize(Policy = AuthorizationPolicies.SectionAccessSettings)]
     [ProducesResponseType<BlockLabelUfmReport>(StatusCodes.Status200OK)]
-    public Task<IActionResult> PreviewBlockLabelConversion(bool UseContentTypeNameComponent = false)
-        => RunBlockLabelMigrator(DryRun: true, UseContentTypeNameComponent);
+    public Task<IActionResult> EvaluateBlockLabels(bool UseDragonflyUfmComponents = true)
+        => RunBlockLabelMigrator(DryRun: true, UseDragonflyUfmComponents);
 
     /// <summary>
     /// Converts every Block List and Block Grid label to UFM and saves the changed datatypes.
@@ -40,10 +40,10 @@ public class UfmExtensionsApiController : UfmExtensionsApiControllerBase
     [HttpPost("convertBlockLabelsToUfm")]
     [Authorize(Policy = AuthorizationPolicies.SectionAccessSettings)]
     [ProducesResponseType<BlockLabelUfmReport>(StatusCodes.Status200OK)]
-    public Task<IActionResult> ConvertBlockLabels(bool UseContentTypeNameComponent = false)
-        => RunBlockLabelMigrator(DryRun: false, UseContentTypeNameComponent);
+    public Task<IActionResult> ConvertBlockLabels(bool UseDragonflyUfmComponents = true)
+        => RunBlockLabelMigrator(DryRun: false, UseDragonflyUfmComponents);
 
-    private async Task<IActionResult> RunBlockLabelMigrator(bool DryRun, bool UseContentTypeNameComponent)
+    private async Task<IActionResult> RunBlockLabelMigrator(bool DryRun, bool UseDragonflyUfmComponents)
     {
         var currentUser = _backOfficeSecurityAccessor.BackOfficeSecurity?.CurrentUser;
         if (currentUser is null)
@@ -51,7 +51,7 @@ public class UfmExtensionsApiController : UfmExtensionsApiControllerBase
             return Unauthorized();
         }
 
-        var report = await _blockLabelUfmMigrator.RunAsync(DryRun, currentUser.Key, UseContentTypeNameComponent);
+        var report = await _blockLabelUfmMigrator.RunAsync(DryRun, currentUser.Key, UseDragonflyUfmComponents);
 
         return Ok(report);
     }

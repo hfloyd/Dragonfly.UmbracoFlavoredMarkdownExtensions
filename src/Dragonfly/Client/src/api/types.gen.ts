@@ -17,45 +17,32 @@ export type BlockLabelChange = {
 
 export type BlockLabelUfmReport = {
     dryRun: boolean;
-    useContentTypeNameComponent: boolean;
+    useDragonflyUfmComponents: boolean;
     dataTypesScanned: number;
     dataTypesSaved: number;
-    labelsConverted: number;
-    labelsNeedingReview: number;
-    labelsUnchanged: number;
-    changes: Array<BlockLabelChange>;
+    readonly labelsNeedingReviewCount: number;
+    readonly labelsConvertedCount: number;
+    readonly labelsUnchangedCount: number;
+    labelsNeedingReview: Array<BlockLabelChange>;
+    labelsConverted: Array<BlockLabelChange>;
+    labelsUnchanged: Array<BlockLabelChange>;
 };
 
-export type PreviewBlockLabelConversionData = {
-    body?: never;
-    path?: never;
-    query?: {
-        UseContentTypeNameComponent?: boolean;
-    };
-    url: '/umbraco/ufmextensions/api/v1/convertBlockLabelsToUfm';
+export type BlockLabelUfmReportWritable = {
+    dryRun: boolean;
+    useDragonflyUfmComponents: boolean;
+    dataTypesScanned: number;
+    dataTypesSaved: number;
+    labelsNeedingReview: Array<BlockLabelChange>;
+    labelsConverted: Array<BlockLabelChange>;
+    labelsUnchanged: Array<BlockLabelChange>;
 };
-
-export type PreviewBlockLabelConversionErrors = {
-    /**
-     * The resource is protected and requires an authentication token
-     */
-    401: unknown;
-};
-
-export type PreviewBlockLabelConversionResponses = {
-    /**
-     * OK
-     */
-    200: BlockLabelUfmReport;
-};
-
-export type PreviewBlockLabelConversionResponse = PreviewBlockLabelConversionResponses[keyof PreviewBlockLabelConversionResponses];
 
 export type ConvertBlockLabelsData = {
     body?: never;
     path?: never;
     query?: {
-        UseContentTypeNameComponent?: boolean;
+        UseDragonflyUfmComponents?: boolean;
     };
     url: '/umbraco/ufmextensions/api/v1/convertBlockLabelsToUfm';
 };
@@ -75,6 +62,31 @@ export type ConvertBlockLabelsResponses = {
 };
 
 export type ConvertBlockLabelsResponse = ConvertBlockLabelsResponses[keyof ConvertBlockLabelsResponses];
+
+export type EvaluateBlockLabelsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        UseDragonflyUfmComponents?: boolean;
+    };
+    url: '/umbraco/ufmextensions/api/v1/evaluateBlockLabelsToUfm';
+};
+
+export type EvaluateBlockLabelsErrors = {
+    /**
+     * The resource is protected and requires an authentication token
+     */
+    401: unknown;
+};
+
+export type EvaluateBlockLabelsResponses = {
+    /**
+     * OK
+     */
+    200: BlockLabelUfmReport;
+};
+
+export type EvaluateBlockLabelsResponse = EvaluateBlockLabelsResponses[keyof EvaluateBlockLabelsResponses];
 
 export type PingData = {
     body?: never;
