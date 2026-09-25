@@ -35,4 +35,13 @@ export const manifests: Array<UmbExtensionManifest> = [
       alias: "dufmLinkUrlWithAnchor",
     },
   },
+  {
+    name: "First Value UFM Component",
+    alias: "Dragonfly.UfmComponent.FirstValue",
+    type: "ufmComponent",
+    api: () => import("./first-value.component.js"),
+    meta: {
+      alias: "dufmFirstValue",
+    },
+  },
 ];

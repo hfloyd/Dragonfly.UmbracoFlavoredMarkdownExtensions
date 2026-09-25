@@ -7,7 +7,7 @@ components, plus a tool for converting AngularJS block labels from Umbraco 13 an
 
 ## What's in it
 
-**Three UFM components**, usable anywhere UFM renders (block labels, templated labels, property
+**Five UFM components**, usable anywhere UFM renders (block labels, templated labels, property
 descriptions):
 
 | Syntax | Renders |
@@ -16,6 +16,7 @@ descriptions):
 | `{dufmLinkDisplay: myLink}` | A link picker's linked item name, else its title, else its URL with any anchor |
 | `{dufmLinkUrl: myLink}` | A link picker's URL, resolving document and media links |
 | `{dufmLinkUrlWithAnchor: myLink}` | A link picker's URL with its query string or anchor appended |
+| `{dufmFirstValue: BlockName, Body:100, Image}` | The first property with a value: picked items' names, rich text without HTML, or plain text, optionally truncated |
 
 **A block label converter.** `BlockLabelUfmMigrator` is registered in DI and rewrites the AngularJS
 labels on every Block List and Block Grid datatype, including Block Grid area create labels. Run it

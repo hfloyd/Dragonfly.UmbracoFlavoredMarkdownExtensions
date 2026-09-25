@@ -1,8 +1,7 @@
 import { customElement, property } from "@umbraco-cms/backoffice/external/lit";
 import { UmbUfmComponentBase, UmbUfmElementBase, UMB_UFM_RENDER_CONTEXT } from "@umbraco-cms/backoffice/ufm";
 import type { UfmToken } from "@umbraco-cms/backoffice/ufm";
-import { UMB_DOCUMENT_ENTITY_TYPE, UmbDocumentItemRepository } from "@umbraco-cms/backoffice/document";
-import { UMB_MEDIA_ENTITY_TYPE, UmbMediaItemRepository } from "@umbraco-cms/backoffice/media";
+import { UfmItemNameResolver } from "./item-name-resolver.js";
 import { parseLinkValues, withQueryString } from "./link-value.function.js";
 import type { UfmLinkValue } from "./link-value.function.js";
 
@@ -15,8 +14,7 @@ export class UfmLinkDisplayElement extends UmbUfmElementBase {
   @property()
   alias?: string;
 
-  #documentItemRepository?: UmbDocumentItemRepository;
-  #mediaItemRepository?: UmbMediaItemRepository;
+  #itemNames = new UfmItemNameResolver(this);
 
   constructor() {
     super();
@@ -48,30 +46,7 @@ export class UfmLinkDisplayElement extends UmbUfmElementBase {
   async #itemName(link: UfmLinkValue): Promise<string | undefined> {
     if (!link?.unique) return undefined;
 
-    const repository = this.#repositoryFor(link.type);
-
-    // A lookup failure should not blank the whole label.
-    const { data } = await repository.requestItems([link.unique]).catch(() => ({ data: undefined }));
-
-    if (!Array.isArray(data) || data.length === 0) return undefined;
-
-    return data
-      .map((item) => item.variants?.[0]?.name ?? (item as { name?: string }).name)
-      .filter((name) => name)
-      .join(", ");
-  }
-
-  #repositoryFor(entityType?: string) {
-    switch (entityType) {
-      case UMB_MEDIA_ENTITY_TYPE:
-        this.#mediaItemRepository ??= new UmbMediaItemRepository(this);
-        return this.#mediaItemRepository;
-
-      case UMB_DOCUMENT_ENTITY_TYPE:
-      default:
-        this.#documentItemRepository ??= new UmbDocumentItemRepository(this);
-        return this.#documentItemRepository;
-    }
+    return this.#itemNames.names(link.type, [link.unique]);
   }
 }
 

@@ -135,6 +135,10 @@ Conversion rules worth knowing:
   already falsy, so the test still behaves the same.
 - `$settings.x == 1` → `$settings.x`, because settings toggles are real booleans in v14+.
 - `| ncRichText` → `| stripHtml`; `| truncate:true:N` → `| truncate:N`.
+- A chain of fallbacks ending in a picked item's name (`a ? a : (b ? (b | ncRichText | truncate:true:N) : (c | ncMediaName))`)
+  becomes `{dufmFirstValue: a, b:N, c}` with `UseDragonflyUfmComponents`; there is no built-in
+  equivalent, so without it the label needs manual review. Chains without a picked item's name stay
+  plain expressions.
 - `$contentTypeName` has no built-in UFM equivalent: a standalone one becomes
   `{dufmBlockContentTypeName:}` with `UseDragonflyUfmComponents`; otherwise the element type name is
   written into the label.

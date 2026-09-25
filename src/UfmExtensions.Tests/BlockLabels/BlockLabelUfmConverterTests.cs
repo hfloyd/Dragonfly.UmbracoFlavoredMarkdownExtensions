@@ -90,13 +90,51 @@ public class BlockLabelUfmConverterTests
 		Assert.Single(result.Warnings);
 	}
 
-	[Fact]
-	public void Picked_name_inside_a_ternary_needs_review()
+	[Theory]
+	[InlineData("{{BlockName ? BlockName : (ResourceNode | ncNodeName)}}", "{dufmFirstValue: BlockName, ResourceNode}")]
+	[InlineData("{{!!BlockName? BlockName : (Image ? (Image | ncMediaName):'')}}", "{dufmFirstValue: BlockName, Image}")]
+	[InlineData(
+		"{{!!BlockName ? BlockName : (!!ContentTitle  ? (ContentTitle | ncRichText | truncate:true:150) : (Image| ncMediaName)) }}",
+		"{dufmFirstValue: BlockName, ContentTitle:150, Image}")]
+	[InlineData(
+		"{{!!BlockName ? BlockName :(!!Header ? Header : (Eyebrow ? Eyebrow :(!!HtmlText ? (HtmlText | ncRichText | truncate:true:100) : (Image | ncMediaName))))}}",
+		"{dufmFirstValue: BlockName, Header, Eyebrow, HtmlText:100, Image}")]
+	public void Fallback_chain_ending_in_a_picked_name_becomes_first_value(string Label, string Expected)
 	{
-		var result = BlockLabelUfmConverter.Convert("{{BlockName ? BlockName : (ResourceNode | ncNodeName)}}", ContentTypeName);
+		var result = BlockLabelUfmConverter.Convert(Label, ContentTypeName);
+
+		Assert.Equal(BlockLabelConversionStatus.Converted, result.Status);
+		Assert.Equal(Expected, result.ConvertedLabel);
+	}
+
+	[Fact]
+	public void Fallback_chain_without_a_picked_name_stays_an_expression()
+	{
+		var result = BlockLabelUfmConverter.Convert("{{Header ? Header : (Body | ncRichText | truncate:true:100)}}", ContentTypeName);
+
+		Assert.Equal(BlockLabelConversionStatus.Converted, result.Status);
+		Assert.Equal("${ Header ? Header : (Body | stripHtml | truncate:100) }", result.ConvertedLabel);
+	}
+
+	[Theory]
+	[InlineData("{{BlockName ? Title : (ResourceNode | ncNodeName)}}")]
+	[InlineData("{{BlockName ? BlockName : 'Untitled' + (ResourceNode | ncNodeName)}}")]
+	public void Picked_name_inside_another_expression_needs_review(string Label)
+	{
+		var result = BlockLabelUfmConverter.Convert(Label, ContentTypeName);
 
 		Assert.Equal(BlockLabelConversionStatus.NeedsManualReview, result.Status);
 		Assert.Contains(result.Warnings, x => x.Contains("umbContentName"));
+	}
+
+	[Fact]
+	public void Picked_name_inside_a_ternary_needs_review_without_Dragonfly_components()
+	{
+		var result = BlockLabelUfmConverter.Convert("{{BlockName ? BlockName : (ResourceNode | ncNodeName)}}", ContentTypeName, UseDragonflyUfmComponents: false);
+
+		Assert.Equal(BlockLabelConversionStatus.NeedsManualReview, result.Status);
+		Assert.Contains(result.Warnings, x => x.Contains("umbContentName"));
+		Assert.DoesNotContain(result.Warnings, x => x.Contains("dufm"));
 	}
 
 	[Fact]

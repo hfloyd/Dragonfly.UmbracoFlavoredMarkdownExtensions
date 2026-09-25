@@ -2,7 +2,7 @@ import { property as d, customElement as E } from "@umbraco-cms/backoffice/exter
 import { UmbUfmComponentBase as M, UmbUfmElementBase as T, UMB_UFM_RENDER_CONTEXT as g } from "@umbraco-cms/backoffice/ufm";
 import { UMB_DOCUMENT_ENTITY_TYPE as C, UmbDocumentUrlRepository as A } from "@umbraco-cms/backoffice/document";
 import { UMB_MEDIA_ENTITY_TYPE as P, UmbMediaUrlRepository as S } from "@umbraco-cms/backoffice/media";
-import { p as q, w as x } from "./link-value.function-BBn2Bd7X.js";
+import { p as q, w as x } from "./link-value.function-D3PQjIif.js";
 var B = Object.defineProperty, D = Object.getOwnPropertyDescriptor, v = (e) => {
   throw TypeError(e);
 }, f = (e, t, r, s) => {
@@ -69,4 +69,4 @@ export {
   l as UfmLinkUrlElement,
   Q as api
 };
-//# sourceMappingURL=link-url.component-B5Gy6lfw.js.map
+//# sourceMappingURL=link-url.component-CX4j120u.js.map

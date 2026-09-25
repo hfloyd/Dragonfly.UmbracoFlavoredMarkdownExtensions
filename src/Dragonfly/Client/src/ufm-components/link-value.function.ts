@@ -45,15 +45,25 @@ export function withQueryString(link: UfmLinkValue, url?: string): string | unde
   return `${url ?? ""}${link.queryString ?? ""}` || undefined;
 }
 
-function withResolvedIdentity(link: UfmLinkValue): UfmLinkValue {
-  if (link.unique || !link.udi) return link;
-
-  const match = legacyUdiPattern.exec(link.udi);
-  if (!match) return link;
+/**
+ * Reads the entity type and key from a udi saved before Umbraco 14, e.g. `umb://document/{key}`.
+ */
+export function parseLegacyUdi(udi: string): { type: string; unique: string } | undefined {
+  const match = legacyUdiPattern.exec(udi);
+  if (!match) return undefined;
 
   const [, entityType, key] = match;
 
-  return { ...link, type: link.type ?? entityType, unique: toGuid(key) };
+  return { type: entityType, unique: toGuid(key) };
+}
+
+function withResolvedIdentity(link: UfmLinkValue): UfmLinkValue {
+  if (link.unique || !link.udi) return link;
+
+  const identity = parseLegacyUdi(link.udi);
+  if (!identity) return link;
+
+  return { ...link, type: link.type ?? identity.type, unique: identity.unique };
 }
 
 function toGuid(key: string): string {
