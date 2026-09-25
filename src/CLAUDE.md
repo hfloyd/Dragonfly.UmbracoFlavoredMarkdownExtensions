@@ -12,9 +12,9 @@ The package major version matches the target Umbraco major version (currently v1
 
 ```
 src/
-├── Dragonfly.UfmExtensions.slnx        Solution (package + test site)
+├── Dragonfly.UfmExtensions.slnx        Solution (package + tests + test site)
 ├── Directory.Packages.props            Central package versions for the package project
-├── Custom.targets                      Pack helpers (see warning below — not currently imported)
+├── Custom.targets                      Pack helpers, imported by Dragonfly.csproj (see warning below)
 ├── Dragonfly/                          The package project (Microsoft.NET.Sdk.Razor)
 │   ├── UfmExtensions/
 │   │   ├── Constants.cs                ApiName used by the Swagger document and API routes
@@ -46,14 +46,16 @@ dotnet test UfmExtensions.Tests/UfmExtensions.Tests.csproj -c Debug
 # Run the test site (Umbraco at https://localhost:44365)
 dotnet run --project UfmExtensions.TestSite/UfmExtensions.TestSite.csproj
 
-# Pack for local testing, straight into the local feed that NuGet.Config already lists
-dotnet pack Dragonfly/Dragonfly.csproj -c Debug -p:Version=0.1.0-hlf-build<timestamp> -o "C:\Users\Heather\WEBS\Code Projects\~Dragonfly\LocalNuGetPackages"
 ```
 
-> **Warning:** `Custom.targets` defines a `PushNugetPackage` target that runs `nuget.exe push` to
-> `https://www.nuget.org` after any **Release** pack. No project currently imports `Custom.targets`,
-> so the push does not fire today — but if it is ever imported, a Release pack publishes publicly.
-> Use `-c Debug` for local packing.
+`Dragonfly.csproj` sets `GeneratePackageOnBuild` and imports `Custom.targets`, so **every build packs
+the package**. A Debug build is versioned `17.0.0--prerelease<timestamp>`, and `Custom.targets` copies
+it into the local feed at `~Dragonfly\LocalNuGetPackages` (which NuGet.Config already lists). That
+includes builds triggered by `dotnet test` or by building the test site.
+
+> **Warning:** `Custom.targets` also runs `nuget.exe push` to `https://www.nuget.org` after every
+> **Release** pack — and since every build packs, that means every Release build publishes publicly.
+> Never build, test or pack with `-c Release`; use `-c Debug`.
 
 ### TypeScript Client (run from `src/Dragonfly/Client/`)
 
