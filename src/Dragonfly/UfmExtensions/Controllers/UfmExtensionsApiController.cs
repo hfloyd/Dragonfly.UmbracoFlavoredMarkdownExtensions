@@ -31,8 +31,8 @@ public class UfmExtensionsApiController : UfmExtensionsApiControllerBase
     [HttpGet("evaluateBlockLabelsToUfm")]
     [Authorize(Policy = AuthorizationPolicies.SectionAccessSettings)]
     [ProducesResponseType<BlockLabelUfmReport>(StatusCodes.Status200OK)]
-    public Task<IActionResult> EvaluateBlockLabels(bool UseDragonflyUfmComponents = true)
-        => RunBlockLabelMigrator(DryRun: true, UseDragonflyUfmComponents);
+    public Task<IActionResult> EvaluateBlockLabels(bool UseDragonflyUfmComponents = true, bool KeepIndexOneBased = true)
+        => RunBlockLabelMigrator(DryRun: true, UseDragonflyUfmComponents, KeepIndexOneBased);
 
     /// <summary>
     /// Converts every Block List and Block Grid label to UFM and saves the changed datatypes.
@@ -40,10 +40,10 @@ public class UfmExtensionsApiController : UfmExtensionsApiControllerBase
     [HttpPost("convertBlockLabelsToUfm")]
     [Authorize(Policy = AuthorizationPolicies.SectionAccessSettings)]
     [ProducesResponseType<BlockLabelUfmReport>(StatusCodes.Status200OK)]
-    public Task<IActionResult> ConvertBlockLabels(bool UseDragonflyUfmComponents = true)
-        => RunBlockLabelMigrator(DryRun: false, UseDragonflyUfmComponents);
+    public Task<IActionResult> ConvertBlockLabels(bool UseDragonflyUfmComponents = true, bool KeepIndexOneBased = true)
+        => RunBlockLabelMigrator(DryRun: false, UseDragonflyUfmComponents, KeepIndexOneBased);
 
-    private async Task<IActionResult> RunBlockLabelMigrator(bool DryRun, bool UseDragonflyUfmComponents)
+    private async Task<IActionResult> RunBlockLabelMigrator(bool DryRun, bool UseDragonflyUfmComponents, bool KeepIndexOneBased)
     {
         var currentUser = _backOfficeSecurityAccessor.BackOfficeSecurity?.CurrentUser;
         if (currentUser is null)
@@ -51,7 +51,7 @@ public class UfmExtensionsApiController : UfmExtensionsApiControllerBase
             return Unauthorized();
         }
 
-        var report = await _blockLabelUfmMigrator.RunAsync(DryRun, currentUser.Key, UseDragonflyUfmComponents);
+        var report = await _blockLabelUfmMigrator.RunAsync(DryRun, currentUser.Key, UseDragonflyUfmComponents, KeepIndexOneBased);
 
         return Ok(report);
     }

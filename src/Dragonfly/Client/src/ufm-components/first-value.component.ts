@@ -11,12 +11,18 @@ type FirstValueEntry = {
   length?: number;
 };
 
+type FirstValueArguments = {
+  entries: Array<FirstValueEntry>;
+  fallback: string;
+};
+
 type PickedItem = {
   type?: string;
   unique: string;
 };
 
 const entryPattern = /^(\w+)(?:\s*:\s*(\d+))?$/;
+const fallbackPattern = /,\s*(["'])(.*)\1\s*$/;
 const htmlTagPattern = /<\/?[a-z][^>]*>/i;
 
 /**
@@ -25,7 +31,8 @@ const htmlTagPattern = /<\/?[a-z][^>]*>/i;
  * items' names, rich text has its HTML stripped, and plain text is shown as it is.
  *
  * `aliases` is a comma-separated list of property aliases, each optionally followed by `:length` to
- * truncate that value, e.g. `BlockName, ContentTitle:150, Image`.
+ * truncate that value, e.g. `BlockName, ContentTitle:150, Image`. A quoted string as the last item is
+ * shown when none of the properties has a value, e.g. `BlockName, Image, "No image"`.
  */
 @customElement("ufm-first-value")
 export class UfmFirstValueElement extends UmbUfmElementBase {
@@ -49,14 +56,16 @@ export class UfmFirstValueElement extends UmbUfmElementBase {
   }
 
   async #firstValue(values: unknown): Promise<string> {
-    if (!values || typeof values !== "object") return "";
+    const { entries, fallback } = parseArguments(this.aliases);
 
-    for (const entry of parseEntries(this.aliases)) {
+    if (!values || typeof values !== "object") return fallback;
+
+    for (const entry of entries) {
       const text = await this.#describe((values as Record<string, unknown>)[entry.alias]);
       if (text) return truncate(text, entry.length);
     }
 
-    return "";
+    return fallback;
   }
 
   async #describe(value: unknown): Promise<string | undefined> {
@@ -86,12 +95,19 @@ export class UfmFirstValueElement extends UmbUfmElementBase {
   }
 }
 
-function parseEntries(aliases?: string): Array<FirstValueEntry> {
-  return (aliases ?? "")
+// The fallback is read first, so a comma inside its quotes is not taken as a separator.
+function parseArguments(aliases?: string): FirstValueArguments {
+  const text = aliases ?? "";
+  const fallback = fallbackPattern.exec(text);
+  const list = fallback ? text.slice(0, fallback.index) : text;
+
+  const entries = list
     .split(",")
     .map((entry) => entryPattern.exec(entry.trim()))
     .filter((match): match is RegExpExecArray => match !== null)
     .map(([, alias, length]) => ({ alias, length: length ? Number(length) : undefined }));
+
+  return { entries, fallback: fallback?.[2] ?? "" };
 }
 
 /**

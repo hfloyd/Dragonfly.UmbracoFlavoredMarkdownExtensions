@@ -20,11 +20,17 @@ public class BlockLabelUfmConverterTests
 
 	[Theory]
 	[InlineData("{{Title}}", "${ Title }")]
-	[InlineData("{{$index}}", "${ $index }")]
-	[InlineData("Item {{$index}}: {{Title}}", "Item ${ $index }: ${ Title }")]
+	[InlineData("{{$index}}", "${ $index+1 }")]
+	[InlineData("Item {{$index}}: {{Title}}", "Item ${ $index+1 }: ${ Title }")]
+	[InlineData("{{'Item ' + $index}}", "${ 'Item ' + ($index+1) }")]
 	[InlineData("{{$settings.umbracoNaviHide == 1 ? 'a' : 'b'}}", "${ $settings.umbracoNaviHide ? 'a' : 'b' }")]
 	[InlineData("{{!!Name ? Name : Other}}", "${ Name ? Name : Other }")]
-	[InlineData("{{Body | ncRichText | truncate:true:150}}", "${ Body | stripHtml | truncate:150 }")]
+	[InlineData("{{Body | ncRichText | truncate:true:150}}", "${ truncate(Body | stripHtml, 150) }")]
+	[InlineData("{{Title | truncate:true:20}}", "${ truncate(Title, 20) }")]
+	[InlineData(
+		"{{!!BlockName ? BlockName : (!!ContentTitle ? (ContentTitle | ncRichText | truncate:true:150) : '')}}",
+		"${ BlockName ? BlockName : (ContentTitle ? (truncate(ContentTitle | stripHtml, 150)) : '') }")]
+	[InlineData("{{'(' + Title | truncate:true:20}}", "${ truncate('(' + Title, 20) }")]
 	[InlineData("{{'Literal text'}}", "Literal text")]
 	public void Expressions_convert_to_ufm_expressions(string Label, string Expected)
 	{
@@ -61,6 +67,17 @@ public class BlockLabelUfmConverterTests
 		Assert.Equal(BlockLabelConversionStatus.Converted, result.Status);
 		Assert.Equal(Expected, result.ConvertedLabel);
 		Assert.DoesNotContain("dufm", result.ConvertedLabel);
+	}
+
+	[Theory]
+	[InlineData("{{$index}}", "${ $index }")]
+	[InlineData("{{'Item ' + $index}}", "${ 'Item ' + $index }")]
+	public void Index_stays_zero_based_when_not_kept_one_based(string Label, string Expected)
+	{
+		var result = BlockLabelUfmConverter.Convert(Label, ContentTypeName, KeepIndexOneBased: false);
+
+		Assert.Equal(BlockLabelConversionStatus.Converted, result.Status);
+		Assert.Equal(Expected, result.ConvertedLabel);
 	}
 
 	[Fact]
@@ -113,7 +130,7 @@ public class BlockLabelUfmConverterTests
 		var result = BlockLabelUfmConverter.Convert("{{Header ? Header : (Body | ncRichText | truncate:true:100)}}", ContentTypeName);
 
 		Assert.Equal(BlockLabelConversionStatus.Converted, result.Status);
-		Assert.Equal("${ Header ? Header : (Body | stripHtml | truncate:100) }", result.ConvertedLabel);
+		Assert.Equal("${ Header ? Header : (truncate(Body | stripHtml, 100)) }", result.ConvertedLabel);
 	}
 
 	[Theory]

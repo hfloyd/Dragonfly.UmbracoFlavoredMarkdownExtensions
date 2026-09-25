@@ -27,9 +27,14 @@ public sealed class BlockLabelUfmMigrator(
 {
 	private static readonly string[] BlockEditorAliases = ["Umbraco.BlockList", "Umbraco.BlockGrid"];
 
-	public async Task<BlockLabelUfmReport> RunAsync(bool DryRun, Guid UserKey, bool UseDragonflyUfmComponents = true)
+	public async Task<BlockLabelUfmReport> RunAsync(bool DryRun, Guid UserKey, bool UseDragonflyUfmComponents = true, bool KeepIndexOneBased = true)
 	{
-		var report = new BlockLabelUfmReport { DryRun = DryRun, UseDragonflyUfmComponents = UseDragonflyUfmComponents };
+		var report = new BlockLabelUfmReport
+		{
+			DryRun = DryRun,
+			UseDragonflyUfmComponents = UseDragonflyUfmComponents,
+			KeepIndexOneBased = KeepIndexOneBased,
+		};
 
 		var dataTypes = (await dataTypeService.GetAllAsync())
 			.Where(x => BlockEditorAliases.Contains(x.EditorAlias))
@@ -95,7 +100,7 @@ public sealed class BlockLabelUfmMigrator(
 	private bool ConvertLabel(JsonObject Owner, string PropertyName, IDataType DataType, string? ContentTypeName, string Description, BlockLabelUfmReport Report)
 	{
 		var label = Owner[PropertyName]?.GetValue<string>();
-		var conversion = BlockLabelUfmConverter.Convert(label, ContentTypeName, Report.UseDragonflyUfmComponents);
+		var conversion = BlockLabelUfmConverter.Convert(label, ContentTypeName, Report.UseDragonflyUfmComponents, Report.KeepIndexOneBased);
 
 		switch (conversion.Status)
 		{
@@ -128,6 +133,8 @@ public class BlockLabelUfmReport
 	public bool DryRun { get; set; }
 
 	public bool UseDragonflyUfmComponents { get; set; }
+
+	public bool KeepIndexOneBased { get; set; }
 
 	public int DataTypesScanned { get; set; }
 

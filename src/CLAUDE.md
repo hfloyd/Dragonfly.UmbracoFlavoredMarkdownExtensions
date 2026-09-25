@@ -134,7 +134,13 @@ Conversion rules worth knowing:
 - `!!` is removed — the expression parser (`heximal-expressions`) rejects it, and an empty value is
   already falsy, so the test still behaves the same.
 - `$settings.x == 1` → `$settings.x`, because settings toggles are real booleans in v14+.
-- `| ncRichText` → `| stripHtml`; `| truncate:true:N` → `| truncate:N`.
+- `$index` → `$index+1` (or `($index+1)` inside a larger expression), because AngularJS labels
+  counted from 1 and UFM counts from 0. `KeepIndexOneBased` (default `true`) controls this; with
+  `false`, `$index` is left as it is.
+- `| ncRichText` → `| stripHtml`; `value | truncate:true:N` → `truncate(value, N)`, where the value is
+  everything before the filter within the same parentheses. The UFM expression parser
+  (`heximal-expressions`) cannot pass arguments to a piped filter: `| truncate:N` is a parse error
+  inside parentheses and silently ignores its length elsewhere.
 - A chain of fallbacks ending in a picked item's name (`a ? a : (b ? (b | ncRichText | truncate:true:N) : (c | ncMediaName))`)
   becomes `{dufmFirstValue: a, b:N, c}` with `UseDragonflyUfmComponents`; there is no built-in
   equivalent, so without it the label needs manual review. Chains without a picked item's name stay

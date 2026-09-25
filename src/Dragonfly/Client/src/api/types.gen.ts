@@ -18,6 +18,7 @@ export type BlockLabelChange = {
 export type BlockLabelUfmReport = {
     dryRun: boolean;
     useDragonflyUfmComponents: boolean;
+    keepIndexOneBased: boolean;
     dataTypesScanned: number;
     dataTypesSaved: number;
     readonly labelsNeedingReviewCount: number;
@@ -31,6 +32,7 @@ export type BlockLabelUfmReport = {
 export type BlockLabelUfmReportWritable = {
     dryRun: boolean;
     useDragonflyUfmComponents: boolean;
+    keepIndexOneBased: boolean;
     dataTypesScanned: number;
     dataTypesSaved: number;
     labelsNeedingReview: Array<BlockLabelChange>;
@@ -43,6 +45,7 @@ export type ConvertBlockLabelsData = {
     path?: never;
     query?: {
         UseDragonflyUfmComponents?: boolean;
+        KeepIndexOneBased?: boolean;
     };
     url: '/umbraco/ufmextensions/api/v1/convertBlockLabelsToUfm';
 };
@@ -68,6 +71,7 @@ export type EvaluateBlockLabelsData = {
     path?: never;
     query?: {
         UseDragonflyUfmComponents?: boolean;
+        KeepIndexOneBased?: boolean;
     };
     url: '/umbraco/ufmextensions/api/v1/evaluateBlockLabelsToUfm';
 };

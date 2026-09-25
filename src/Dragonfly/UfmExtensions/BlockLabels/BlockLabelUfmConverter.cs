@@ -18,6 +18,7 @@ public static class BlockLabelUfmConverter
 	private static readonly Regex ArrayIndex = new(@"\[\s*\d+\s*\]", RegexOptions.Compiled);
 	private static readonly Regex QuotedLiteral = new(@"^'[^']*'$", RegexOptions.Compiled);
 	private static readonly Regex DoubleNegation = new(@"!!", RegexOptions.Compiled);
+	private static readonly Regex BlockIndex = new(@"\$index\b", RegexOptions.Compiled);
 
 	//AngularJS expressions that a UFM component covers on its own. Group 1, where present, is the component's argument.
 	private static readonly Regex StandaloneContentTypeName = new(@"^\$contentTypeName$", RegexOptions.Compiled);
@@ -58,7 +59,11 @@ public static class BlockLabelUfmConverter
 	/// Uses this package's UFM components where they cover an expression, which requires the package to stay installed.
 	/// When false, only Umbraco's built-in components are used, so the converted labels work without the package.
 	/// </param>
-	public static BlockLabelConversion Convert(string? Label, string? ContentTypeName, bool UseDragonflyUfmComponents = true)
+	/// <param name="KeepIndexOneBased">
+	/// Adds 1 to $index, which counted from 1 in AngularJS labels but counts from 0 in UFM. When false, $index is
+	/// left as it is, so the converted labels count from 0.
+	/// </param>
+	public static BlockLabelConversion Convert(string? Label, string? ContentTypeName, bool UseDragonflyUfmComponents = true, bool KeepIndexOneBased = true)
 	{
 		var conversion = new BlockLabelConversion { OriginalLabel = Label ?? string.Empty };
 
@@ -75,7 +80,7 @@ public static class BlockLabelUfmConverter
 		foreach (Match match in Expression.Matches(Label))
 		{
 			converted.Append(Label, position, match.Index - position);
-			converted.Append(ConvertExpression(match.Groups[1].Value, ContentTypeName, UseDragonflyUfmComponents, conversion));
+			converted.Append(ConvertExpression(match.Groups[1].Value, ContentTypeName, UseDragonflyUfmComponents, KeepIndexOneBased, conversion));
 			position = match.Index + match.Length;
 		}
 
@@ -89,7 +94,7 @@ public static class BlockLabelUfmConverter
 		return conversion;
 	}
 
-	private static string ConvertExpression(string Expression, string? ContentTypeName, bool UseDragonflyUfmComponents, BlockLabelConversion Conversion)
+	private static string ConvertExpression(string Expression, string? ContentTypeName, bool UseDragonflyUfmComponents, bool KeepIndexOneBased, BlockLabelConversion Conversion)
 	{
 		var expression = Expression.Trim();
 
@@ -130,8 +135,16 @@ public static class BlockLabelUfmConverter
 		//A settings toggle is a real boolean in v14+, so '== 1' would never be true.
 		expression = SettingsEqualsOne.Replace(expression, "$1");
 
+		//$index counted from 1 in AngularJS labels and counts from 0 in UFM.
+		if (KeepIndexOneBased)
+		{
+			expression = expression == "$index"
+				? "$index+1"
+				: BlockIndex.Replace(expression, "($$index+1)");
+		}
+
 		expression = RichTextFilter.Replace(expression, "| stripHtml");
-		expression = TruncateFilter.Replace(expression, "| truncate:$1");
+		expression = WithTruncateCalls(expression);
 
 		//The expression parser rejects '!!'; an empty value is falsy on its own, so the test still holds.
 		expression = DoubleNegation.Replace(expression, string.Empty);
@@ -140,6 +153,57 @@ public static class BlockLabelUfmConverter
 		return QuotedLiteral.IsMatch(expression)
 			? expression.Substring(1, expression.Length - 2)
 			: $"${{ {expression} }}";
+	}
+
+	/// <summary>
+	/// Rewrites <c>value | truncate:true:N</c> as <c>truncate(value, N)</c>. The UFM expression parser cannot pass
+	/// arguments to a piped filter: inside parentheses <c>| truncate:N</c> is a parse error, and elsewhere the length
+	/// is ignored. As in AngularJS, the filter applies to everything before it within the same parentheses.
+	/// </summary>
+	private static string WithTruncateCalls(string Expression)
+	{
+		var expression = Expression;
+		var match = TruncateFilter.Match(expression);
+
+		while (match.Success)
+		{
+			var start = EnclosingGroupStartIndex(expression, match.Index);
+			var value = expression.Substring(start, match.Index - start).Trim();
+			var call = $"truncate({value}, {match.Groups[1].Value})";
+
+			expression = expression.Substring(0, start) + call + expression.Substring(match.Index + match.Length);
+			match = TruncateFilter.Match(expression);
+		}
+
+		return expression;
+	}
+
+	//Finds where the parentheses enclosing Index open, or the start of the expression when there are none.
+	private static int EnclosingGroupStartIndex(string Expression, int Index)
+	{
+		var depth = 0;
+
+		for (var i = Index - 1; i >= 0; i--)
+		{
+			if (Expression[i] == '\'')
+			{
+				i = i > 0 ? Expression.LastIndexOf('\'', i - 1) : -1;
+				if (i < 0)
+				{
+					return 0;
+				}
+			}
+			else if (Expression[i] == ')')
+			{
+				depth++;
+			}
+			else if (Expression[i] == '(' && depth-- == 0)
+			{
+				return i + 1;
+			}
+		}
+
+		return 0;
 	}
 
 	/// <summary>
