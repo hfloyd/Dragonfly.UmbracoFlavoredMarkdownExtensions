@@ -8,7 +8,7 @@ Extra [Umbraco Flavored Markdown](https://docs.umbraco.com/umbraco-cms/model-you
 
 Umbraco 14 removed AngularJS, so block labels written as `{{ propertyAlias }}` no longer render. UFM covers most of what those labels did, but not all of it — this package fills in the gaps that come up most often when upgrading.
 
-**I created this package to solve my own upgrade/migration needs, and will continue to add to it as I come across additional use-cases. Not being up-to-speed on Lit/Vite and rest, most of the actual code was written by my buddy Claude Code.**
+*I created this package to solve my own upgrade/migration needs, and will continue to add to it as I come across additional use-cases. Not being up-to-speed on Lit/Vite and the rest, most of the actual code was written by my buddy Claude Code.*
 
 <!--
 Including screenshots is a really good idea!
