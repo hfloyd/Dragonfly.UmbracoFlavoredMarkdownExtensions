@@ -24,12 +24,9 @@ public class BlockLabelUfmConverterTests
 	[InlineData("Item {{$index}}: {{Title}}", "Item ${ $index+1 }: ${ Title }")]
 	[InlineData("{{'Item ' + $index}}", "${ 'Item ' + ($index+1) }")]
 	[InlineData("{{$settings.umbracoNaviHide == 1 ? 'a' : 'b'}}", "${ $settings.umbracoNaviHide ? 'a' : 'b' }")]
-	[InlineData("{{!!Name ? Name : Other}}", "${ Name ? Name : Other }")]
+	[InlineData("{{!!Name ? Name + '!' : Other}}", "${ Name ? Name + '!' : Other }")]
 	[InlineData("{{Body | ncRichText | truncate:true:150}}", "${ truncate(Body | stripHtml, 150) }")]
 	[InlineData("{{Title | truncate:true:20}}", "${ truncate(Title, 20) }")]
-	[InlineData(
-		"{{!!BlockName ? BlockName : (!!ContentTitle ? (ContentTitle | ncRichText | truncate:true:150) : '')}}",
-		"${ BlockName ? BlockName : (ContentTitle ? (truncate(ContentTitle | stripHtml, 150)) : '') }")]
 	[InlineData("{{'(' + Title | truncate:true:20}}", "${ truncate('(' + Title, 20) }")]
 	[InlineData("{{'Literal text'}}", "Literal text")]
 	public void Expressions_convert_to_ufm_expressions(string Label, string Expected)
@@ -116,7 +113,13 @@ public class BlockLabelUfmConverterTests
 	[InlineData(
 		"{{!!BlockName ? BlockName :(!!Header ? Header : (Eyebrow ? Eyebrow :(!!HtmlText ? (HtmlText | ncRichText | truncate:true:100) : (Image | ncMediaName))))}}",
 		"{dufmFirstValue: BlockName, Header, Eyebrow, HtmlText:100, Image}")]
-	public void Fallback_chain_ending_in_a_picked_name_becomes_first_value(string Label, string Expected)
+	[InlineData(
+		"{{!!BlockName ? BlockName :(!!Header ? Header : (Eyebrow ? Eyebrow :(!!HtmlText ? (HtmlText | ncRichText | truncate:true:100) : '')))}}",
+		"{dufmFirstValue: BlockName, Header, Eyebrow, HtmlText:100}")]
+	[InlineData("{{!!Name ? Name : Other}}", "{dufmFirstValue: Name, Other}")]
+	[InlineData("""{{Layout? Layout : "[No Layout Selected]"}}""", """{dufmFirstValue: Layout, "[No Layout Selected]"}""")]
+	[InlineData("{{Title ? Title : 'Untitled'}}", """{dufmFirstValue: Title, "Untitled"}""")]
+	public void Fallback_chain_becomes_first_value(string Label, string Expected)
 	{
 		var result = BlockLabelUfmConverter.Convert(Label, ContentTypeName);
 
@@ -124,13 +127,26 @@ public class BlockLabelUfmConverterTests
 		Assert.Equal(Expected, result.ConvertedLabel);
 	}
 
-	[Fact]
-	public void Fallback_chain_without_a_picked_name_stays_an_expression()
+	[Theory]
+	[InlineData("{{Header ? Header : (Body | ncRichText | truncate:true:100)}}", "${ Header ? Header : (truncate(Body | stripHtml, 100)) }")]
+	[InlineData("""{{Layout? Layout : "[No Layout Selected]"}}""", """${ Layout? Layout : "[No Layout Selected]" }""")]
+	public void Fallback_chain_stays_an_expression_without_Dragonfly_components(string Label, string Expected)
 	{
-		var result = BlockLabelUfmConverter.Convert("{{Header ? Header : (Body | ncRichText | truncate:true:100)}}", ContentTypeName);
+		var result = BlockLabelUfmConverter.Convert(Label, ContentTypeName, UseDragonflyUfmComponents: false);
 
 		Assert.Equal(BlockLabelConversionStatus.Converted, result.Status);
-		Assert.Equal("${ Header ? Header : (truncate(Body | stripHtml, 100)) }", result.ConvertedLabel);
+		Assert.Equal(Expected, result.ConvertedLabel);
+	}
+
+	[Theory]
+	[InlineData("{{$settings.umbracoNaviHide == 1 ? 'a' : 'b'}}", "${ $settings.umbracoNaviHide ? 'a' : 'b' }")]
+	[InlineData("""{{$settings.BlockAnchorId? "(#" + $settings.BlockAnchorId + ")" : ''}}""", """${ $settings.BlockAnchorId? "(#" + $settings.BlockAnchorId + ")" : '' }""")]
+	[InlineData("{{Title ? Title : 'Say {hi}'}}", "${ Title ? Title : 'Say {hi}' }")]
+	public void Ternary_that_is_not_a_fallback_chain_stays_an_expression(string Label, string Expected)
+	{
+		var result = BlockLabelUfmConverter.Convert(Label, ContentTypeName);
+
+		Assert.Equal(Expected, result.ConvertedLabel);
 	}
 
 	[Theory]

@@ -141,10 +141,11 @@ Conversion rules worth knowing:
   everything before the filter within the same parentheses. The UFM expression parser
   (`heximal-expressions`) cannot pass arguments to a piped filter: `| truncate:N` is a parse error
   inside parentheses and silently ignores its length elsewhere.
-- A chain of fallbacks ending in a picked item's name (`a ? a : (b ? (b | ncRichText | truncate:true:N) : (c | ncMediaName))`)
-  becomes `{dufmFirstValue: a, b:N, c}` with `UseDragonflyUfmComponents`; there is no built-in
-  equivalent, so without it the label needs manual review. Chains without a picked item's name stay
-  plain expressions.
+- A chain of fallbacks (`a ? a : (b ? (b | ncRichText | truncate:true:N) : (c | ncMediaName))`)
+  becomes `{dufmFirstValue: a, b:N, c}` with `UseDragonflyUfmComponents`; a chain ending in text
+  (`… : 'None'`) passes it on as the fallback text (`…, "None"`), and a trailing `''` is dropped.
+  Without `UseDragonflyUfmComponents` a chain stays an expression, except one holding a picked
+  item's name, which has no built-in equivalent and needs manual review.
 - `$contentTypeName` has no built-in UFM equivalent: a standalone one becomes
   `{dufmBlockContentTypeName:}` with `UseDragonflyUfmComponents`; otherwise the element type name is
   written into the label.

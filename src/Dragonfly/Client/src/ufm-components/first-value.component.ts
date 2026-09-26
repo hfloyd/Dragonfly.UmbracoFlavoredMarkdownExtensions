@@ -28,7 +28,8 @@ const htmlTagPattern = /<\/?[a-z][^>]*>/i;
 /**
  * Renders the first of several properties that has a value, the way an AngularJS label's chain of
  * `a ? a : (b ? b : c)` fallbacks did. Each value is rendered by its shape: a picker shows the picked
- * items' names, rich text has its HTML stripped, and plain text is shown as it is.
+ * items' names, rich text has its HTML stripped, a list of text is comma-separated, and plain text is
+ * shown as it is.
  *
  * `aliases` is a comma-separated list of property aliases, each optionally followed by `:length` to
  * truncate that value, e.g. `BlockName, ContentTitle:150, Image`. A quoted string as the last item is
@@ -84,6 +85,13 @@ export class UfmFirstValueElement extends UmbUfmElementBase {
 
     if (typeof value === "string") {
       return htmlTagPattern.test(value) ? stripHtml(value) : value.trim();
+    }
+
+    // Lists of text, such as tags or a Contentment Data List, show their items comma-separated.
+    if (Array.isArray(value)) {
+      return value
+        .filter((item): item is string => typeof item === "string" && item.trim() !== "")
+        .join(", ");
     }
 
     // Zero was falsy in the AngularJS fallbacks, so it is skipped here too.

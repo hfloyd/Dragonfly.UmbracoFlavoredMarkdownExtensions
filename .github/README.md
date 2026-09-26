@@ -8,6 +8,8 @@ Extra [Umbraco Flavored Markdown](https://docs.umbraco.com/umbraco-cms/model-you
 
 Umbraco 14 removed AngularJS, so block labels written as `{{ propertyAlias }}` no longer render. UFM covers most of what those labels did, but not all of it — this package fills in the gaps that come up most often when upgrading.
 
+**I created this package to solve my own upgrade/migration needs, and will continue to add to it as I come across additional use-cases. Not being up-to-speed on Lit/Vite and rest, most of the actual code was written by my buddy Claude Code.**
+
 <!--
 Including screenshots is a really good idea!
 
@@ -31,11 +33,12 @@ Nothing else to configure. The components register themselves.
 This package includes two main features:
 
 1. Custom UFM components that fill in gaps left by Umbraco's built-in components
-2. A tool for evaluating and converting AngularJS block labels to UFM, with a report of any labels that need manual review. You can use the tool in your own code, or via the Management API if you have access to the Settings section. Additionally, if you only want to run it once (on a website project upgrade/migration) and select FALSE for `UseDragonflyUfmComponents`, only built-in components will be used, and you can remove the package after the migration. (See more about the tool, [below](#ConversionTool))
+2. Some API tools for evaluating and converting AngularJS block labels to UFM, with a report of any labels that need manual review. You can use the tools in your own code, or via the Management API if you have access to the Settings section. Additionally, if you only want to run it once (on a website project upgrade/migration) and select FALSE for `UseDragonflyUfmComponents`, only built-in components will be used, and you can remove the package after the migration. (See more about the tool, [below](#ConversionTool))
 
 ## <a name="UfmComponents"></a>UFM Components
 
-Based on my own idiosyncratic labels from projects done in v13, I have created custom components that handle my own needs, and I hope they will help you too. 
+Based on my own idiosyncratic labels from projects done in v13, I have created custom components that handle my own needs, and I hope they will help you too. If you find a gap that this package doesn't cover, please [open an issue] or start a discussion in the [Discussions] section of this repo, and I'll see if I can add it.
+
 
 
 They are all prefixed with `dufm` to avoid conflicts and confusion with Umbraco's built-in components.
@@ -101,6 +104,7 @@ Renders the first of several properties that has a value, rendering each one by 
 
 - a content, media or multinode tree picker shows the picked items' names;
 - rich text has its HTML stripped;
+- a list of text, such as tags or a Contentment Data List, is comma-separated;
 - plain text is shown as it is.
 
 Add `:length` after an alias to truncate that value to that many characters, with an ellipsis. Values without a length are not truncated.
@@ -117,7 +121,7 @@ Examples:
 {dufmFirstValue: BlockName, Header, HtmlText:100, "No value"}
 ```
 
-Replaces AngularJS chains of fallbacks that end in a picked item's name, which cannot be written as a UFM expression because a component cannot be nested inside one:
+Replaces AngularJS chains of fallbacks, which read more simply this way and, when they end in a picked item's name, cannot be written as a UFM expression at all, because a component cannot be nested inside one:
 
 ```
 {{ BlockName ? BlockName : (ContentTitle ? (ContentTitle | ncRichText | truncate:true:150) : (Image | ncMediaName)) }}
@@ -177,7 +181,8 @@ proposed UFM, and any warnings, without saving anything.
 | `{{$index}}`                                                                                              | `${ $index+1 }` (`${ $index }` with `KeepIndexOneBased: false`) | same                                            |
 | `{{$contentTypeName}}`                                                                                    | `{dufmBlockContentTypeName:}`                  | the element type's name, as text                                 |
 | `{{$settings.umbracoNaviHide == 1 ? 'a' : 'b'}}`                                                          | `${ $settings.umbracoNaviHide ? 'a' : 'b' }`   | same                                                             |
-| `{{!!Name ? Name : Other}}`                                                                               | `${ Name ? Name : Other }`                     | same                                                             |
+| `{{!!Name ? Name : Other}}`                                                                               | `{dufmFirstValue: Name, Other}`                | `${ Name ? Name : Other }`                                       |
+| `{{Layout ? Layout : "None"}}`                                                                            | `{dufmFirstValue: Layout, "None"}`             | `${ Layout ? Layout : "None" }`                                  |
 | `{{Body \| ncRichText \| truncate:true:150}}`                                                             | `${ truncate(Body \| stripHtml, 150) }`        | same                                                             |
 | `{{Link[0]["name"]}}`                                                                                     | `{umbLink: Link}`                              | same                                                             |
 | `{{Link[0]["url"]}}`                                                                                      | `{dufmLinkUrl: Link}`                          | left for manual review — no built-in equivalent                  |
@@ -189,7 +194,7 @@ Four of these are behavior fixes rather than translations. UFM's expression pars
 
 ### What it leaves alone
 
-A UFM component cannot be nested inside a `${ }` expression. So a label that picks *between* a picked item's name and something else has no built-in equivalent. With `UseDragonflyUfmComponents=true`, a chain of fallbacks in which each step shows the property it tests — `{{BlockName ? BlockName : (ResourceNode | ncNodeName)}}` — becomes `{dufmFirstValue: …}`. Any other mix of a picked item's name and an expression is reported as `NeedsManualReview` with a warning, and the converter **leaves the label untouched**, rather than writing something half-converted. Rewrite
+A UFM component cannot be nested inside a `${ }` expression. So a label that picks *between* a picked item's name and something else has no built-in equivalent. With `UseDragonflyUfmComponents=true`, any chain of fallbacks in which each step shows the property it tests — `{{BlockName ? BlockName : (ResourceNode | ncNodeName)}}` — becomes `{dufmFirstValue: …}`. Any other mix of a picked item's name and an expression is reported as `NeedsManualReview` with a warning, and the converter **leaves the label untouched**, rather than writing something half-converted. Rewrite
 those by hand, either dropping the fallback or showing both values.
 
 `BlockLabelUfmConverter` is public and static if you want to convert a single label yourself:

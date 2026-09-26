@@ -29,10 +29,12 @@ public static class BlockLabelUfmConverter
 		RegexOptions.Compiled);
 	private static readonly Regex PickerName = new(@"^(\w+)\s*\|\s*nc(?:Node|Media)Name$", RegexOptions.Compiled);
 
-	//One value in a chain of fallbacks. Group 1 is the property alias, group 2 a picker name filter, group 3 a truncate length.
+	//One value in a chain of fallbacks. Group 1 is the property alias, group 2 a truncate length.
 	private static readonly Regex FallbackChainValue = new(
-		@"^(\w+)(?:\s*\|\s*nc(?:RichText|(NodeName|MediaName)))?(?:\s*\|\s*truncate\s*:\s*(?:true|false)\s*:\s*(\d+))?$",
+		@"^(\w+)(?:\s*\|\s*nc(?:RichText|NodeName|MediaName))?(?:\s*\|\s*truncate\s*:\s*(?:true|false)\s*:\s*(\d+))?$",
 		RegexOptions.Compiled);
+	//Text a chain of fallbacks ends in. Group 2 is the text, which cannot hold quotes or braces, since it becomes a quoted component argument.
+	private static readonly Regex FallbackChainText = new(@"^(['""])([^'""{}]*)\1$", RegexOptions.Compiled);
 	private static readonly Regex FallbackChainCondition = new(@"^(?:!!)?(\w+)$", RegexOptions.Compiled);
 
 	/// <summary>
@@ -47,7 +49,7 @@ public static class BlockLabelUfmConverter
 		new(ArgumentFrom(LinkUrl), DragonflyAlias: "dufmLinkUrl", BuiltInAlias: null),
 		new(ArgumentFrom(LinkName), DragonflyAlias: "umbLink", BuiltInAlias: "umbLink"),
 		new(ArgumentFrom(PickerName), DragonflyAlias: "umbContentName", BuiltInAlias: "umbContentName"),
-		new(PickerFallbackChainArgument, DragonflyAlias: "dufmFirstValue", BuiltInAlias: null),
+		new(FallbackChainArgument, DragonflyAlias: "dufmFirstValue", BuiltInAlias: null),
 	];
 
 	/// <summary>
@@ -185,9 +187,9 @@ public static class BlockLabelUfmConverter
 
 		for (var i = Index - 1; i >= 0; i--)
 		{
-			if (Expression[i] == '\'')
+			if (Expression[i] is '\'' or '"')
 			{
-				i = i > 0 ? Expression.LastIndexOf('\'', i - 1) : -1;
+				i = i > 0 ? Expression.LastIndexOf(Expression[i], i - 1) : -1;
 				if (i < 0)
 				{
 					return 0;
@@ -239,14 +241,14 @@ public static class BlockLabelUfmConverter
 	}
 
 	/// <summary>
-	/// Reads a chain of fallbacks that ends in a picked item's name, such as
+	/// Reads a chain of fallbacks, such as
 	/// <c>a ? a : (b ? (b | ncRichText | truncate:true:150) : (c | ncMediaName))</c>, into the argument for
-	/// dufmFirstValue: <c>a, b:150, c</c>. A trailing <c>''</c> fallback is dropped. Returns null for anything
-	/// else, including chains without a picked item's name, which work as a plain expression.
+	/// dufmFirstValue: <c>a, b:150, c</c>. A chain ending in text passes it on as dufmFirstValue's fallback text,
+	/// and a trailing <c>''</c> is dropped. Returns null for anything else.
 	/// </summary>
-	private static string? PickerFallbackChainArgument(string Expression)
+	private static string? FallbackChainArgument(string Expression)
 	{
-		var values = new List<FallbackChainEntry>();
+		var values = new List<string>();
 		var remaining = WithoutEnclosingParentheses(Expression);
 
 		var questionMark = TopLevelIndexOf(remaining, '?', 0);
@@ -271,12 +273,20 @@ public static class BlockLabelUfmConverter
 				return null;
 			}
 
-			values.Add(value);
+			values.Add(value.ToString());
 			remaining = WithoutEnclosingParentheses(remaining.Substring(colon + 1));
 			questionMark = TopLevelIndexOf(remaining, '?', 0);
 		}
 
-		if (remaining != "''")
+		var text = FallbackChainText.Match(remaining);
+		if (text.Success)
+		{
+			if (text.Groups[2].Value.Length > 0)
+			{
+				values.Add($"\"{text.Groups[2].Value}\"");
+			}
+		}
+		else
 		{
 			var last = FallbackChainEntry.Parse(remaining);
 			if (last is null)
@@ -284,12 +294,10 @@ public static class BlockLabelUfmConverter
 				return null;
 			}
 
-			values.Add(last);
+			values.Add(last.ToString());
 		}
 
-		return values.Exists(x => x.IsPickerName)
-			? string.Join(", ", values)
-			: null;
+		return string.Join(", ", values);
 	}
 
 	private static string WithoutEnclosingParentheses(string Expression)
@@ -312,9 +320,9 @@ public static class BlockLabelUfmConverter
 
 		for (var i = StartIndex; i < Expression.Length; i++)
 		{
-			if (Expression[i] == '\'')
+			if (Expression[i] is '\'' or '"')
 			{
-				i = Expression.IndexOf('\'', i + 1);
+				i = Expression.IndexOf(Expression[i], i + 1);
 				if (i < 0)
 				{
 					return -1;
@@ -349,7 +357,7 @@ public static class BlockLabelUfmConverter
 	private sealed record ComponentSubstitution(Func<string, string?> MatchArgument, string DragonflyAlias, string? BuiltInAlias);
 
 	//One property in a chain of fallbacks, written the way dufmFirstValue reads it: alias, or alias:length.
-	private sealed record FallbackChainEntry(string Alias, string? Length, bool IsPickerName)
+	private sealed record FallbackChainEntry(string Alias, string? Length)
 	{
 		public static FallbackChainEntry? Parse(string Expression)
 		{
@@ -359,10 +367,7 @@ public static class BlockLabelUfmConverter
 				return null;
 			}
 
-			return new FallbackChainEntry(
-				match.Groups[1].Value,
-				match.Groups[3].Success ? match.Groups[3].Value : null,
-				match.Groups[2].Success);
+			return new FallbackChainEntry(match.Groups[1].Value, match.Groups[2].Success ? match.Groups[2].Value : null);
 		}
 
 		public override string ToString()
