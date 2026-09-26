@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { ConvertBlockLabelsData, ConvertBlockLabelsErrors, ConvertBlockLabelsResponses, EvaluateBlockLabelsData, EvaluateBlockLabelsErrors, EvaluateBlockLabelsResponses, PingData, PingErrors, PingResponses } from './types.gen';
+import type { CheckUfmSyntaxData, CheckUfmSyntaxErrors, CheckUfmSyntaxResponses, ConvertBlockLabelsData, ConvertBlockLabelsErrors, ConvertBlockLabelsResponses, EvaluateBlockLabelsData, EvaluateBlockLabelsErrors, EvaluateBlockLabelsResponses, PingData, PingErrors, PingResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -19,6 +19,14 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
 };
 
 export class UmbracoFlavoredMarkdownExtensionsService {
+    public static checkUfmSyntax<ThrowOnError extends boolean = false>(options?: Options<CheckUfmSyntaxData, ThrowOnError>): RequestResult<CheckUfmSyntaxResponses, CheckUfmSyntaxErrors, ThrowOnError> {
+        return (options?.client ?? client).get<CheckUfmSyntaxResponses, CheckUfmSyntaxErrors, ThrowOnError>({
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/umbraco/ufmextensions/api/v1/checkUfmSyntax',
+            ...options
+        });
+    }
+    
     public static convertBlockLabels<ThrowOnError extends boolean = false>(options?: Options<ConvertBlockLabelsData, ThrowOnError>): RequestResult<ConvertBlockLabelsResponses, ConvertBlockLabelsErrors, ThrowOnError> {
         return (options?.client ?? client).post<ConvertBlockLabelsResponses, ConvertBlockLabelsErrors, ThrowOnError>({
             security: [{ scheme: 'bearer', type: 'http' }],

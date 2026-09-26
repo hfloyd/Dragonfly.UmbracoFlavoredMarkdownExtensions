@@ -29,6 +29,17 @@ export type BlockLabelUfmReport = {
     labelsUnchanged: Array<BlockLabelChange>;
 };
 
+export type UfmSyntaxCheck = {
+    label: string;
+    readonly issueCount: number;
+    issues: Array<UfmSyntaxIssue>;
+};
+
+export type UfmSyntaxIssue = {
+    text: string;
+    message: string;
+};
+
 export type BlockLabelUfmReportWritable = {
     dryRun: boolean;
     useDragonflyUfmComponents: boolean;
@@ -39,6 +50,36 @@ export type BlockLabelUfmReportWritable = {
     labelsConverted: Array<BlockLabelChange>;
     labelsUnchanged: Array<BlockLabelChange>;
 };
+
+export type UfmSyntaxCheckWritable = {
+    label: string;
+    issues: Array<UfmSyntaxIssue>;
+};
+
+export type CheckUfmSyntaxData = {
+    body?: never;
+    path?: never;
+    query?: {
+        Label?: string;
+    };
+    url: '/umbraco/ufmextensions/api/v1/checkUfmSyntax';
+};
+
+export type CheckUfmSyntaxErrors = {
+    /**
+     * The resource is protected and requires an authentication token
+     */
+    401: unknown;
+};
+
+export type CheckUfmSyntaxResponses = {
+    /**
+     * OK
+     */
+    200: UfmSyntaxCheck;
+};
+
+export type CheckUfmSyntaxResponse = CheckUfmSyntaxResponses[keyof CheckUfmSyntaxResponses];
 
 export type ConvertBlockLabelsData = {
     body?: never;

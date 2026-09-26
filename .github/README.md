@@ -198,6 +198,25 @@ those by hand, either dropping the fallback or showing both values.
 BlockLabelConversion result = BlockLabelUfmConverter.Convert(label, contentTypeName, useDragonflyUfmComponents, keepIndexOneBased);
 ```
 
+## <a name="SyntaxCheck"></a>Checking a UFM Label
+
+When a label you have written or edited by hand renders nothing, check it for common mistakes:
+
+| Request | Does |
+| --- | --- |
+| `GET /umbraco/ufmextensions/api/v1/checkUfmSyntax?Label=…` | Lists the issues found in the label, with how to fix each one; saves nothing |
+
+Paste the label into the `Label` field in the Swagger UI, which encodes it for you. It reports:
+
+- a component written as an expression — `${ dufmFirstValue: … }` instead of `{dufmFirstValue: …}`;
+- a component nested inside an expression;
+- an argument passed to a piped filter — `| truncate:150`, which is a parse error inside parentheses and ignored elsewhere; call `truncate(value, 150)` instead;
+- `!!`, which is a parse error in UFM expressions;
+- leftover AngularJS: `{{ }}`, the `ncNodeName`/`ncMediaName`/`ncRichText` filters, `$contentTypeName`, `$settings.x == 1`, and reading into picker values by index;
+- a `${` that is never closed.
+
+The checks look for known patterns, so a label with no issues can still fail to render. The same checks are available in code as `UfmSyntaxChecker.Check(label)`.
+
 ## Contributing
 
 Contributions to this package are most welcome! Please read the [Contributing Guidelines](CONTRIBUTING.md).

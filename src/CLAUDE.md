@@ -149,6 +149,13 @@ Conversion rules worth knowing:
   `{dufmBlockContentTypeName:}` with `UseDragonflyUfmComponents`; otherwise the element type name is
   written into the label.
 
+### UFM Syntax Check (C#)
+
+`UfmSyntaxChecker` (also in `UfmExtensions/BlockLabels/`) checks one UFM label for known mistakes and
+backs the `checkUfmSyntax` endpoint. It finds `${ }` expressions with the same pattern UFM's tokenizer
+uses, then runs each `ExpressionRules` row (pattern → message) against them. A newly found pitfall is
+a new row there plus a test case in `UfmSyntaxCheckerTests`.
+
 ### NuGet Package File Deployment
 
 `Dragonfly.csproj` uses `Microsoft.NET.Sdk.Razor` with `StaticWebAssetBasePath=/`, so everything in

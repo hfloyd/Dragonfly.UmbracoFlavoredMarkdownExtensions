@@ -43,6 +43,16 @@ public class UfmExtensionsApiController : UfmExtensionsApiControllerBase
     public Task<IActionResult> ConvertBlockLabels(bool UseDragonflyUfmComponents = true, bool KeepIndexOneBased = true)
         => RunBlockLabelMigrator(DryRun: false, UseDragonflyUfmComponents, KeepIndexOneBased);
 
+    /// <summary>
+    /// Checks a single UFM label for common mistakes, such as a component written as an expression or a filter
+    /// argument UFM cannot parse. Saves nothing.
+    /// </summary>
+    [HttpGet("checkUfmSyntax")]
+    [Authorize(Policy = AuthorizationPolicies.SectionAccessSettings)]
+    [ProducesResponseType<UfmSyntaxCheck>(StatusCodes.Status200OK)]
+    public UfmSyntaxCheck CheckUfmSyntax(string Label)
+        => UfmSyntaxChecker.Check(Label);
+
     private async Task<IActionResult> RunBlockLabelMigrator(bool DryRun, bool UseDragonflyUfmComponents, bool KeepIndexOneBased)
     {
         var currentUser = _backOfficeSecurityAccessor.BackOfficeSecurity?.CurrentUser;
