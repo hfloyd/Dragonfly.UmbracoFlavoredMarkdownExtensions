@@ -3,9 +3,11 @@ import { UmbUfmComponentBase, UmbUfmElementBase, UMB_UFM_RENDER_CONTEXT } from "
 import type { UfmToken } from "@umbraco-cms/backoffice/ufm";
 import { describeValue } from "./describe-value.js";
 import { UfmItemNameResolver } from "./item-name-resolver.js";
+import { parseLinkValues } from "./link-value.function.js";
 
 type FirstValueEntry = {
   alias: string;
+  linkName: boolean;
   length?: number;
 };
 
@@ -14,7 +16,7 @@ type FirstValueArguments = {
   fallback: string;
 };
 
-const entryPattern = /^(\w+)(?:\s*:\s*(\d+))?$/;
+const entryPattern = /^(\w+)(\.name)?(?:\s*:\s*(\d+))?$/;
 const fallbackPattern = /,\s*(["'])(.*)\1\s*$/;
 
 /**
@@ -26,6 +28,9 @@ const fallbackPattern = /,\s*(["'])(.*)\1\s*$/;
  * `aliases` is a comma-separated list of property aliases, each optionally followed by `:length` to
  * truncate that value, e.g. `BlockName, ContentTitle:150, Image`. A quoted string as the last item is
  * shown when none of the properties has a value, e.g. `BlockName, Image, "No image"`.
+ *
+ * A link picker alias followed by `.name` shows only the first link's title, the way an AngularJS label's
+ * `myLink[0].name` did, rather than the picked item's name, e.g. `Title, PrimaryLink.name`.
  */
 @customElement("ufm-first-value")
 export class UfmFirstValueElement extends UmbUfmElementBase {
@@ -54,7 +59,8 @@ export class UfmFirstValueElement extends UmbUfmElementBase {
     if (!values || typeof values !== "object") return fallback;
 
     for (const entry of entries) {
-      const text = await describeValue((values as Record<string, unknown>)[entry.alias], this.#itemNames);
+      const value = (values as Record<string, unknown>)[entry.alias];
+      const text = entry.linkName ? firstLinkName(value) : await describeValue(value, this.#itemNames);
       if (text) return truncate(text, entry.length);
     }
 
@@ -72,9 +78,13 @@ function parseArguments(aliases?: string): FirstValueArguments {
     .split(",")
     .map((entry) => entryPattern.exec(entry.trim()))
     .filter((match): match is RegExpExecArray => match !== null)
-    .map(([, alias, length]) => ({ alias, length: length ? Number(length) : undefined }));
+    .map(([, alias, linkName, length]) => ({ alias, linkName: !!linkName, length: length ? Number(length) : undefined }));
 
   return { entries, fallback: fallback?.[2] ?? "" };
+}
+
+function firstLinkName(value: unknown): string | undefined {
+  return parseLinkValues(value)[0]?.name?.trim() || undefined;
 }
 
 function truncate(text: string, length?: number): string {

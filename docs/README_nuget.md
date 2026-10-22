@@ -16,7 +16,7 @@ descriptions):
 | `{dufmLinkDisplay: myLink}` | A link picker's linked item name, else its title, else its URL with any anchor |
 | `{dufmLinkUrl: myLink}` | A link picker's URL, resolving document and media links |
 | `{dufmLinkUrlWithAnchor: myLink}` | A link picker's URL with its query string or anchor appended |
-| `{dufmFirstValue: BlockName, Body:100, Image}` | The first property with a value: picked items' names, rich text without HTML, or plain text, optionally truncated |
+| `{dufmFirstValue: BlockName, Body:100, Image}` | The first property with a value: picked items' names, rich text without HTML, or plain text, optionally truncated. `myLink.name` reads only a link picker's first link title |
 
 **A block label converter.** `BlockLabelUfmMigrator` is registered in DI and rewrites the AngularJS
 labels on every Block List and Block Grid datatype, including Block Grid area create labels. Run it

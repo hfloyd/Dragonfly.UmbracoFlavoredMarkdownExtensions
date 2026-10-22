@@ -143,12 +143,26 @@ Conversion rules worth knowing:
 - `| ncRichText` → `| stripHtml`; `value | truncate:true:N` → `truncate(value, N)`, where the value is
   everything before the filter within the same parentheses. The UFM expression parser
   (`heximal-expressions`) cannot pass arguments to a piped filter: `| truncate:N` is a parse error
-  inside parentheses and silently ignores its length elsewhere.
+  inside parentheses and silently ignores its length elsewhere. A tail (`truncate:true:N:'…'`) is
+  passed on as `truncate(value, N, '…')`.
+- `value | limitTo:N` → `truncate(value, N, '')`: `limitTo` cut text without an ellipsis, and UFM's
+  `truncate` adds one unless its tail is `''`. A negative `limitTo` or one with a start index is left
+  for manual review.
+- Any other piped filter UFM does not have (`date`, `currency`, `number`, `umbCmsTitleCase`, …), or a UFM
+  filter still passed an argument (`| truncate:20`), is reported as `NeedsManualReview`, since the label
+  would not render. `UfmFilterAliases` in `BlockLabelUfmConverter` lists UFM's filters.
 - A chain of fallbacks (`a ? a : (b ? (b | ncRichText | truncate:true:N) : (c | ncMediaName))`)
   becomes `{dufmFirstValue: a, b:N, c}` with `UseDragonflyUfmComponents`; a chain ending in text
   (`… : 'None'`) passes it on as the fallback text (`…, "None"`), and a trailing `''` is dropped.
+  A `limitTo` or `truncate` after the whole chain (`a ? a : b | limitTo:100`) applies to every value,
+  as AngularJS filters apply to everything before them: `{dufmFirstValue: a:100, b:100}`.
+  `dufmFirstValue` ends a shortened value with `…`, which `limitTo` did not.
   Without `UseDragonflyUfmComponents` a chain stays an expression, except one holding a picked
   item's name, which has no built-in equivalent and needs manual review.
+- `x | ncNodeName` and `x | ncMediaName` become `{dufmFirstValue: x}` with `UseDragonflyUfmComponents`, and
+  `{umbContentName: x}` without. Both show the names of Content, Multinode Tree and Media Picker values as v17
+  stores them (a GUID, `{type, unique}` objects, `{mediaKey}` objects), but `umbContentName` lists several items in
+  its own order rather than the order they were picked, as `ncNodeName` did, and shows nothing for a udi string.
 - `value | umbCmsJoinArray:', ' | ncNodeName` (a List View column showing several picked items) becomes
   `{dufmFirstValue: value}` with `UseDragonflyUfmComponents`: the render context for a List View column
   label is `{ value: <column value> }`, and `dufmFirstValue` resolves every picked item and joins the names
@@ -163,6 +177,15 @@ Conversion rules worth knowing:
   `…["X"][0]["nodeName"] ? … : …["X"][0]["name"]`; `…["X"][0]["url"]` becomes `{dufmFirstBlockValue: value, X, Url}`.
   Block values are stored as `contentData[].values[{alias, value}]` in v14+, which an expression cannot search,
   hence the component. Only `[0]` is converted, and there is no built-in equivalent.
+- AngularJS read a picked link's properties in several forms; `Link[0].name` and `Link[0]['name']` are
+  matched as `Link[0]["name"]`, so every link pattern accepts all three. The rewrite is only used to find a
+  component, so a label that stays an expression keeps its original form.
+- `Link[0].name ? Link[0].name : Link[0].nodeName` (optionally testing `Link[0].name.length > 0`) becomes
+  `{umbLink: Link}` in both modes: umbLink shows the link's title, else the picked item's name.
+- A fallback chain step may test `a.length > 0` or `a.length` instead of `a`, which is the same test for text.
+- A link's title in a fallback chain (`title ? title : Link[0].name`) becomes a `Link.name` entry:
+  `{dufmFirstValue: title, Link.name}`. `dufmFirstValue` reads a plain `Link` entry the way `dufmLinkDisplay`
+  does, picked item's name first, so `.name` is what keeps a custom link title such as "Read more".
 - `$contentTypeName` has no built-in UFM equivalent: a standalone one becomes
   `{dufmBlockContentTypeName:}` with `UseDragonflyUfmComponents`; otherwise the element type name is
   written into the label.

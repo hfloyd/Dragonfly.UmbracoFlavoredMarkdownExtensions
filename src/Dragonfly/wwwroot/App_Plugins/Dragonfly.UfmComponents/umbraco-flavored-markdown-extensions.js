@@ -55,7 +55,7 @@ const n = [
     name: "First Value UFM Component",
     alias: "Dragonfly.UfmComponent.FirstValue",
     type: "ufmComponent",
-    api: () => import("./first-value.component-DyNMibDa.js"),
+    api: () => import("./first-value.component-BCbJ3oHx.js"),
     meta: {
       alias: "dufmFirstValue"
     }
